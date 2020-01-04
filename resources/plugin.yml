@@ -1,0 +1,8 @@
+name: ChunkCollectors
+version: 2.0
+author: Cloth
+main: com.cloth.ChunkCollectorPlugin
+commands:
+  collector:
+    description: Displays the available chunk collector commands.
+    aliases: [cc, chunkcollector]

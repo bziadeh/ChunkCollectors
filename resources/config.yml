@@ -1,0 +1,68 @@
+#################################################################
+#                            Layout                             #
+#                                                               #
+#     Customize the collector by adding or removing mobs to     #
+#      your liking. These are the default layout settings.      #
+#                                                               #
+#################################################################
+
+title: 'ChunkCollector'
+size: 45
+
+# Any mobs listed below will be collected AND will be on the inventory GUI.
+chunkcollector:
+  CREEPER:
+    slot: 0
+    amount: 0
+    price: 200
+  ZOMBIE:
+    slot: 1
+    amount: 0
+    price: 100
+  SKELETON:
+    slot: 2
+    amount: 0
+    price: 50
+
+#################################################################
+#                           Messages                            #
+#                                                               #
+#       Customize every message in the plugin to fit your       #
+#                server's style and colors.                     #
+#                                                               #
+#################################################################
+
+prefix-success: '&a[✓]'
+prefix-failure: '&c[✗]'
+
+# General messages.
+
+no-permission: 'You do not have permission to access this.'
+incorrect-syntax: 'Incorrect syntax, please try again.'
+
+# Collector messages.
+
+collector-place: 'Successfully placed the chunk collector.'
+collector-place-failure: 'You cannot place a chunk collector here.'
+collector-break: 'Successfully removed the chunk collector.'
+collector-break-failure: 'You are not allowed to break this chunk collector.'
+
+
+#################################################################
+#                        Placeable Item                         #
+#                                                               #
+#       This section is for customizing the actual item that    #
+#            people will be placing in their bases.             #
+#                                                               #
+#################################################################
+
+collector:
+  name: 'ChunkCollector'
+  type: BEACON
+  glowing: true
+  lore:
+    - '&rPlace this down in your &eclaimed land &fto'
+    - '&rstart collecting &emob &f& &efarm &fdrops.'
+    - '&rYou can use the sell wands to quickly sell your savings.'
+    - '&r'
+    - '&4&lNOTICE: &rYou must be %rank%+ to use.'
