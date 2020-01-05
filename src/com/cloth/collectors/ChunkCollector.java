@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -88,8 +89,8 @@ public class ChunkCollector implements Listener {
      */
     @EventHandler
     public void onCollectorInteract(PlayerInteractEvent event) {
-        if(isThisCollector(event.getClickedBlock())) {
-            event.getPlayer().sendMessage("clicked the collector.");
+        if(isThisCollector(event.getClickedBlock()) && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            event.setCancelled(true);
             event.getPlayer().openInventory(inventory);
         }
     }
@@ -132,8 +133,6 @@ public class ChunkCollector implements Listener {
      * Executes when the chunk collector is destroyed (by a player or an explosion)
      */
     private void destroy() {
-        ChunkCollectorPlugin instance = ChunkCollectorPlugin.getInstance();
-
-        instance.getCollectorHandler().removeCollector(this);
+        ChunkCollectorPlugin.getInstance().getCollectorHandler().removeCollector(this);
     }
 }
