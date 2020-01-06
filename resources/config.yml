@@ -1,28 +1,50 @@
 #################################################################
-#                            Layout                             #
+#                   General Settings + Layout                   #
 #                                                               #
-#     Customize the collector by adding or removing mobs to     #
-#      your liking. These are the default layout settings.      #
+#     Customize the collectors by adding or removing mobs to    #
+#      your liking. You can create as many custom collectors    #
+#         as you want, name them differently and support        #
+#          different drops (mob drops, farm drops, etc.)        #
 #                                                               #
 #################################################################
 
 title: 'ChunkCollector'
 size: 45
 
-# Any mobs listed below will be collected AND will be on the inventory GUI.
-chunkcollector:
-  CREEPER:
-    slot: 0
-    amount: 0
-    price: 200
-  ZOMBIE:
-    slot: 1
-    amount: 0
-    price: 100
-  SKELETON:
-    slot: 2
-    amount: 0
-    price: 50
+# The mode of the collector. Either: FALL_DEATH, INSTANT
+mode: INSTANT
+
+# Here you create your custom collectors. To help you get started, I made two default collectors.
+collectors:
+  farm_collector:
+    background: NONE
+    SUGAR_CANE:
+      slot: 1
+      name: '&fSugarcane'
+      lore:
+      - '&aLeft-click to sell.'
+      pricePer: 175
+  mob_collector:
+    background: BLACK
+    BONE:
+      slot: 20
+      name: '&fBone'
+      lore:
+      - '&aLeft-click to sell.'
+      pricePer: 100
+    ARROW:
+      slot: 22
+      name: '&fArrow'
+      lore:
+      - '&aLeft-click to sell.'
+      pricePer: 175
+    ROTTEN_FLESH:
+      slot: 24
+      name: '&fRotten Flesh'
+      lore:
+      - '&aLeft-click to sell.'
+      pricePer: 125
+
 
 #################################################################
 #                           Messages                            #
@@ -32,21 +54,20 @@ chunkcollector:
 #                                                               #
 #################################################################
 
-prefix-success: '&a[✓]'
-prefix-failure: '&c[✗]'
-
 # General messages.
 
-no-permission: 'You do not have permission to access this.'
-incorrect-syntax: 'Incorrect syntax, please try again.'
+no-permission: '&cYou do not have permission to access this.'
+incorrect-syntax: '&cIncorrect syntax, please try again.'
+reload-config: '&aYou reloaded the configuration file.'
+player-not-found: '&cCould not find the specified player.'
 
 # Collector messages.
 
-collector-place: 'Successfully placed the chunk collector.'
-collector-place-failure: 'You cannot place a chunk collector here.'
-collector-break: 'Successfully removed the chunk collector.'
-collector-break-failure: 'You are not allowed to break this chunk collector.'
-
+collector-place: '&aYou placed the chunk collector.'
+collector-place-failure: '&aYou cannot place a chunk collector here.'
+collector-break: '&aYou removed the chunk collector.'
+collector-break-failure: '&aYou are not allowed to break this chunk collector.'
+collector-sell: '&aSuccessfully sold &f%amount%x %name% &afor &f$%price%.'
 
 #################################################################
 #                        Placeable Item                         #

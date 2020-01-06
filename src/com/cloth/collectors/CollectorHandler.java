@@ -8,6 +8,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,22 +23,19 @@ public class CollectorHandler implements Listener {
 
     private List<ChunkCollector> collectorList;
 
-    private List<ChunkCollector> collectorRemoveList;
-
     public CollectorHandler() {
         collectorList = new ArrayList<>();
-
-        collectorRemoveList = new ArrayList<>();
 
         ChunkCollectorPlugin.getInstance().registerListener(this);
     }
 
     /**
-     * Caches the chunk collector, does not add it to the database.
+     * Adds the chunk collector to the collectList, does not add it to the database.
+     * The start() method will handle that.
      *
      * @param collector the collector that was placed.
      */
-    public void cacheCollector(ChunkCollector collector) {
+    public void addCollector(ChunkCollector collector) {
         collectorList.add(collector);
     }
 
@@ -46,11 +45,15 @@ public class CollectorHandler implements Listener {
      * @param collector the collector being removed.
      */
     public void removeCollector(ChunkCollector collector) {
+        Inventory inventory = collector.getInventory().get();
+
+        // Close player's inventory if the collector is destroyed. (VERY IMPORTANT, PREVENTS DUPING)
+        for(int i = inventory.getViewers().size() - 1; i >= 0; i--) {
+            inventory.getViewers().get(i).closeInventory();
+        }
+
         ChunkCollectorPlugin.getInstance().unregisterListener(collector);
-
         collectorList.remove(collector);
-
-        collectorRemoveList.add(collector); // flags this collector to be removed from the SQLite database.
     }
 
     /**
@@ -73,7 +76,6 @@ public class CollectorHandler implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                collectorRemoveList.forEach(SQLConnector::removeCollector);
                 collectorList.forEach(SQLConnector::saveCollector);
             }
         }.runTaskTimerAsynchronously(ChunkCollectorPlugin.getInstance(), time, time);
@@ -91,9 +93,12 @@ public class CollectorHandler implements Listener {
 
         final Player player = event.getPlayer();
 
-        // Check if the player is placing a chunk collector.
-        if(event.getItemInHand().equals(ChunkCollector.getCollectorItem())) {
+        // Create the item we will compare to the default collector item...
+        ItemStack itemInHandCompare = event.getItemInHand();
+        itemInHandCompare.setAmount(1);
 
+        // Check if the player is placing a chunk collector.
+        if(itemInHandCompare.equals(ChunkCollector.getCollectorItem())) {
             FPlayer factionPlayer;
 
             // Is the player allowed to place a collector?
@@ -117,7 +122,7 @@ public class CollectorHandler implements Listener {
 
             // Yay, it succeeded!
             player.sendMessage(Config.COLLECTOR_PLACE);
-            cacheCollector(new ChunkCollector(player, event.getBlockPlaced().getLocation()));
+            addCollector(new ChunkCollector(player, event.getBlockPlaced().getLocation(), "mob_collector"));
         }
     }
 }

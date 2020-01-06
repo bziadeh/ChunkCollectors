@@ -20,8 +20,11 @@ public class Config {
     public static String COLLECTOR_BREAK;
     public static String COLLECTOR_PLACE_FAILURE;
     public static String COLLECTOR_BREAK_FAILURE;
-    public static String PREFIX_SUCCESS;
-    public static String PREFIX_FAILURE;
+    public static String COLLECTOR_MODE;
+    public static String COLLECTOR_SELL;
+    public static String INCORRECT_SYNTAX;
+    public static String RELOAD_CONFIG;
+    public static String PLAYER_NOT_FOUND;
     public static int INVENTORY_SIZE;
 
     /**
@@ -32,7 +35,7 @@ public class Config {
     public Config setup() {
         plugin.saveDefaultConfig();
 
-        loadConfig(); // Asynchronously loads data from the configuration file.
+        loadConfig(false); // Asynchronously loads data from the configuration file.
 
         return this;
     }
@@ -40,7 +43,7 @@ public class Config {
     /**
      * Loads information from the configuration file.
      */
-    public void loadConfig() {
+    public void loadConfig(boolean reload) {
         new Thread(() -> {
             COLLECTOR_TITLE = getString("title");
             COLLECTOR_TYPE = getString("collector.type");
@@ -48,9 +51,16 @@ public class Config {
             COLLECTOR_PLACE_FAILURE = getString("collector-place-failure");
             COLLECTOR_BREAK = getString("collector-break");
             COLLECTOR_BREAK_FAILURE = getString("collector-break-failure");
-            PREFIX_SUCCESS = getString("prefix-success");
-            PREFIX_FAILURE = getString("prefix-failure");
-            INVENTORY_SIZE = plugin.getConfig().getInt("size");
+            COLLECTOR_MODE = getString("mode");
+            COLLECTOR_SELL = getString("collector-sell");
+            INCORRECT_SYNTAX = getString("incorrect-syntax");
+            RELOAD_CONFIG = getString("reload-config");
+            PLAYER_NOT_FOUND = getString("player-not-found");
+
+            // We only allow messages to be reloaded, not inventory sizes. So we put this in here.
+            if(!reload) {
+                INVENTORY_SIZE = plugin.getConfig().getInt("size");
+            }
         }).start();
     }
 
