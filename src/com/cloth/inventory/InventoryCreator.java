@@ -114,6 +114,11 @@ public class InventoryCreator {
                     continue;
                 }
 
+                // Ensures the item-name option does not cause any problems.
+                if(drop.equalsIgnoreCase("item-name")) {
+                    continue;
+                }
+
                 String path = "collectors." + collector + "." + drop;
                 int slot = config.getInt(path + ".slot");
                 String name = config.getString(path + ".name").replaceAll("&", "§");

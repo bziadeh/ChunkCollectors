@@ -4,6 +4,8 @@ import com.cloth.ChunkCollectorPlugin;
 import com.cloth.config.Config;
 import com.cloth.objects.CollectorInventory;
 import com.cloth.objects.ItemData;
+import com.massivecraft.factions.struct.Role;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -13,15 +15,14 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.SpawnerSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-
 import java.util.HashMap;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -40,6 +41,8 @@ public class ChunkCollector implements Listener {
 
     private Random random;
 
+    private String type;
+
     public ChunkCollector(Player factionLeader, Location location, String type) {
         random = new Random();
 
@@ -49,10 +52,11 @@ public class ChunkCollector implements Listener {
 
         this.location = location;
 
+        this.type = type;
+
         ChunkCollectorPlugin plugin = ChunkCollectorPlugin.getInstance();
 
-        // Creates the default inventory GUI for this collector.
-        inventory = new CollectorInventory(plugin.getInventoryCreator().getDefaultInventories().get(type));
+        inventory = new CollectorInventory(plugin.getInventoryCreator().getDefaultInventories().get(this.type = type));
 
         setupEmptyItemCollection();
 
@@ -69,7 +73,17 @@ public class ChunkCollector implements Listener {
 
         meta = collector.getItemMeta();
 
-        meta.setDisplayName(Config.COLLECTOR_TITLE);
+        List<String> lore = Config.COLLECTOR_ITEM_LORE;
+
+        // Update the placeholder values in the configuration file.
+        for(int i = lore.size() - 1; i >= 0; i--) {
+            lore.set(i, lore.get(i)
+                    .replaceAll("&", "§"));
+        }
+
+        meta.setLore(lore);
+
+        collector.setItemMeta(meta);
     }
 
     /**
@@ -77,7 +91,13 @@ public class ChunkCollector implements Listener {
      *
      * @return the chunk collector ItemStack.
      */
-    public static ItemStack getCollectorItem() {
+    public static ItemStack getCollectorItem(String type) {
+        ItemMeta meta = collector.getItemMeta();
+
+        meta.setDisplayName(Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§"));
+
+        collector.setItemMeta(meta);
+
         return collector;
     }
 
@@ -159,7 +179,8 @@ public class ChunkCollector implements Listener {
                 destroy(event.getBlock().getLocation(), true);
 
                 // check faction role for permission?
-                event.getPlayer().sendMessage(Config.COLLECTOR_BREAK);
+                event.getPlayer().sendMessage(Config.COLLECTOR_BREAK.replaceAll("%type%",
+                        Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
             }
         }
     }
@@ -233,8 +254,10 @@ public class ChunkCollector implements Listener {
      * Executes when the chunk collector is destroyed (by a player or an explosion)
      */
     private void destroy(Location location, boolean drop) {
-        if(drop)
-            location.getBlock().breakNaturally(ChunkCollector.getCollectorItem());
+        if(drop) {
+            location.getBlock().setType(Material.AIR);
+            location.getWorld().dropItemNaturally(location, ChunkCollector.getCollectorItem(type));
+        }
         ChunkCollectorPlugin.getInstance().getCollectorHandler().removeCollector(this);
     }
 

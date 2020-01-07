@@ -21,6 +21,11 @@ public class CollectorCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
 
+        if(!commandSender.hasPermission("chunkcollectors.give") && !commandSender.isOp()) {
+            commandSender.sendMessage(Config.NO_PERMISSION);
+            return false;
+        }
+
         if(args.length == 0) {
             sendBaseCommands(commandSender, label);
             return false;
@@ -52,12 +57,72 @@ public class CollectorCommand implements CommandExecutor {
             return false;
         }
 
+        String type;
 
+        if(!isCollectorType(type = args[2])) {
+            commandSender.sendMessage(Config.COLLECTOR_INVALID);
+            return false;
+        }
+
+        // The user didn't enter a valid amount.
+        if(!args[3].matches("[0-9]+") || (args[3].matches("[0-9]+") && Integer.parseInt(args[3]) <= 0)) {
+            commandSender.sendMessage(Config.INCORRECT_SYNTAX);
+            sendBaseCommands(commandSender, label);
+            return false;
+        }
+
+        int amount = Integer.parseInt(args[3]);
+
+        // If the user's inventory is full, drop the item at their location.
+        if(target.getInventory().firstEmpty() == -1) {
+            target.getWorld().dropItemNaturally(target.getLocation(), ChunkCollector.getCollectorItem(type));
+        } else {
+            // use the type variable to change the displayname?
+            target.getInventory().addItem(ChunkCollector.getCollectorItem(type));
+        }
+
+        // Send the sent and receive messages.
+        String display = Config.COLLECTOR_ITEM_NAMES.get(args[2]).replaceAll("&", "§");
+        sendCompleteMessage(commandSender, target, display, amount);
         return false;
     }
 
+    /**
+     * Sends the default information commands.
+     *
+     * @param commandSender who the messages are being sent to.
+     * @param label the command (alias) the person used when entering the command.
+     */
     private void sendBaseCommands(CommandSender commandSender, String label) {
         commandSender.sendMessage("§6/" + label + " give <player> <type> <amount>");
         commandSender.sendMessage("§6/" + label + " reload §7 - only reloads the messages.");
+    }
+
+    /**
+     * Checks if the specified string is a collector type.
+     *
+     * @param args the string being checked.
+     * @return whether or not the string is a collector type.
+     */
+    private boolean isCollectorType(String args) {
+        for(String type : Config.COLLECTOR_TYPES) {
+            if(type.equalsIgnoreCase(args))
+                return true;
+        }
+        return false;
+    }
+
+    private void sendCompleteMessage(CommandSender sender, Player target, String type, int amount) {
+        target.sendMessage(Config.COLLECTOR_RECEIVE
+                .replaceAll("%amount%", String.valueOf(amount))
+                .replaceAll("%type%", type)
+                .replaceAll("%sender%", sender.getName()));
+
+        if(!(sender instanceof Player) || !sender.equals(target)) {
+            sender.sendMessage(Config.COLLECTOR_GIVE
+                    .replaceAll("%name%", target.getName())
+                    .replaceAll("%type%", type)
+                    .replaceAll("%amount%", String.valueOf(amount)));
+        }
     }
 }

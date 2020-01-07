@@ -14,6 +14,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Brennan on 1/4/2020.
@@ -93,18 +94,14 @@ public class CollectorHandler implements Listener {
 
         final Player player = event.getPlayer();
 
-        // Create the item we will compare to the default collector item...
-        ItemStack itemInHandCompare = event.getItemInHand();
-        itemInHandCompare.setAmount(1);
-
         // Check if the player is placing a chunk collector.
-        if(itemInHandCompare.equals(ChunkCollector.getCollectorItem())) {
+        if(isChunkCollector(event.getItemInHand())) {
             FPlayer factionPlayer;
 
             // Is the player allowed to place a collector?
             if(!(factionPlayer = FPlayers.getInstance().getByPlayer(player)).hasFaction()) {
                 event.setCancelled(true);
-                player.sendMessage("you must be in a faction to place!");
+                player.sendMessage(Config.MUST_HAVE_FACTION);
                 return;
             }
 
@@ -113,16 +110,40 @@ public class CollectorHandler implements Listener {
 
             // Does the player own the land where the collector is being placed?
             if(factionAt != null) {
-                if(!factionAt.equals(factionPlayer.getFaction())) {
+                if (!factionAt.equals(factionPlayer.getFaction())) {
                     event.setCancelled(true);
                     player.sendMessage("cannot place here!");
                     return;
                 }
             }
 
+            String type = null;
+            Map<String, String> collectorItemNames = Config.COLLECTOR_ITEM_NAMES;
+
+            for(String values : collectorItemNames.keySet()) {
+                if(collectorItemNames.get(values).replaceAll("&", "§")
+                        .equalsIgnoreCase(event.getItemInHand().getItemMeta().getDisplayName()))
+                    type = values;
+            }
+
+            // The collector's type could not be identified?
+            if(type == null) {
+                System.out.println("Unable to identify collector type...");
+                return;
+            }
+
             // Yay, it succeeded!
-            player.sendMessage(Config.COLLECTOR_PLACE);
-            addCollector(new ChunkCollector(player, event.getBlockPlaced().getLocation(), "mob_collector"));
+            player.sendMessage(Config.COLLECTOR_PLACE.replaceAll("%type%",
+                    Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
+            addCollector(new ChunkCollector(player, event.getBlockPlaced().getLocation(), type));
         }
+    }
+
+    private boolean isChunkCollector(ItemStack collector) {
+        for(String value : Config.COLLECTOR_ITEM_NAMES.values()) {
+            if (collector.getItemMeta().getDisplayName().equalsIgnoreCase(value.replaceAll("&", "§")))
+                return true;
+        }
+        return false;
     }
 }
