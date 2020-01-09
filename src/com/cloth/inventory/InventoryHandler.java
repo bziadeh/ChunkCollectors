@@ -2,6 +2,12 @@ package com.cloth.inventory;
 
 import com.cloth.ChunkCollectorPlugin;
 import com.cloth.collectors.ChunkCollector;
+import com.cloth.config.Config;
+import com.massivecraft.factions.Board;
+import com.massivecraft.factions.FLocation;
+import com.massivecraft.factions.FPlayer;
+import com.massivecraft.factions.FPlayers;
+import com.massivecraft.factions.struct.Role;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -41,10 +47,11 @@ public class InventoryHandler implements Listener {
 
             ItemStack itemClicked;
 
-            // Is the clicked item null?
             if((itemClicked = event.getCurrentItem()) == null) {
                 return;
             }
+
+            Player player = (Player) event.getWhoClicked();
 
             if(chunkCollector.getInventory().isCollecting(itemClicked.getType())) {
                 chunkCollector.sell(itemClicked.getType(), (Player) event.getWhoClicked());

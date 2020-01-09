@@ -4,14 +4,28 @@ import com.cloth.collectors.CollectorHandler;
 import com.cloth.commands.CollectorCommand;
 import com.cloth.config.Config;
 import com.cloth.config.SQLConnector;
-import com.cloth.inventory.InventoryHandler;
 import com.cloth.inventory.InventoryCreator;
+import com.cloth.inventory.InventoryHandler;
+import com.cloth.packets.PacketHandler;
+import com.cloth.packets.WrapperPlayServerChat;
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketEvent;
 import net.milkbowl.vault.economy.Economy;
+import org.apache.commons.lang3.StringUtils;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by Brennan on 1/4/2020.
@@ -54,8 +68,10 @@ public class ChunkCollectorPlugin extends JavaPlugin {
                 new InventoryHandler();
                 // Handles the chunk collector command.
                 new CollectorCommand(instance);
+                // Handles all packet related code.
+                new PacketHandler(instance);
             }
-        }.runTaskLater(this, 40);
+        }.runTaskLater(this, 10);
     }
 
     /**

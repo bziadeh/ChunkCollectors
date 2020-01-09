@@ -4,6 +4,8 @@ import com.cloth.ChunkCollectorPlugin;
 import com.cloth.config.Config;
 import com.cloth.config.SQLConnector;
 import com.massivecraft.factions.*;
+import com.massivecraft.factions.struct.Role;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -94,6 +96,13 @@ public class CollectorHandler implements Listener {
 
         final Player player = event.getPlayer();
 
+        // Prevents NullPointerExceptions when calling isChunkCollector()
+        if(event.getItemInHand() == null
+                || event.getItemInHand().getItemMeta() == null
+                || event.getItemInHand().getItemMeta().getDisplayName() == null) {
+            return;
+        }
+
         // Check if the player is placing a chunk collector.
         if(isChunkCollector(event.getItemInHand())) {
             FPlayer factionPlayer;
@@ -108,13 +117,33 @@ public class CollectorHandler implements Listener {
             Faction factionAt = Board.getInstance()
                     .getFactionAt(new FLocation(event.getBlockPlaced().getLocation()));
 
+            if(factionAt == null) {
+                return;
+            }
+
             // Does the player own the land where the collector is being placed?
-            if(factionAt != null) {
-                if (!factionAt.equals(factionPlayer.getFaction())) {
-                    event.setCancelled(true);
-                    player.sendMessage("cannot place here!");
-                    return;
-                }
+            if (!factionAt.equals(factionPlayer.getFaction())) {
+                event.setCancelled(true);
+                player.sendMessage(Config.COLLECTOR_PLACE_FAILURE);
+                return;
+            }
+
+            int rank;
+
+            if(factionPlayer.getRole().value < (rank = Config.PLACE_COLLECTOR_RANK)) {
+                event.setCancelled(true);
+                player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
+                return;
+            }
+
+            ChunkCollector collectorAtLocation;
+
+            if((collectorAtLocation = getCollectorAtLocation(event.getBlockPlaced().getLocation())) != null) {
+                event.setCancelled(true);
+                String itemName = Config.COLLECTOR_ITEM_NAMES.get(collectorAtLocation.getType());
+                String chunkOccupied = Config.CHUNK_OCCUPIED.replaceAll("%type%", itemName);
+                player.sendMessage(chunkOccupied);
+                return;
             }
 
             String type = null;
@@ -135,7 +164,7 @@ public class CollectorHandler implements Listener {
             // Yay, it succeeded!
             player.sendMessage(Config.COLLECTOR_PLACE.replaceAll("%type%",
                     Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
-            addCollector(new ChunkCollector(player, event.getBlockPlaced().getLocation(), type));
+            addCollector(new ChunkCollector(factionPlayer.getFaction(), event.getBlockPlaced().getLocation(), type));
         }
     }
 
@@ -145,5 +174,14 @@ public class CollectorHandler implements Listener {
                 return true;
         }
         return false;
+    }
+
+    public ChunkCollector getCollectorAtLocation(Location location) {
+        for(ChunkCollector chunkCollector : collectorList) {
+            if(chunkCollector.getLocation().getChunk().equals(location.getChunk())) {
+                return chunkCollector;
+            }
+        }
+        return null;
     }
 }

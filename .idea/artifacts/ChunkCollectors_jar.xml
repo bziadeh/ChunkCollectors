@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="ChunkCollectors:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/ChunkCollectors_jar</output-path>
+    <root id="archive" name="ChunkCollectors.jar">
+      <element id="module-output" name="ChunkCollectors 2.0" />
+      <element id="file-copy" path="$PROJECT_DIR$/resources/plugin.yml" />
+      <element id="file-copy" path="$PROJECT_DIR$/resources/config.yml" />
+    </root>
+  </artifact>
+</component>

@@ -43,7 +43,7 @@ public class SQLConnector {
 
                 // The contents of this table will depend on the config. Does the user want the collector to store all drops, or only some?
                 // Or, maybe create a table default and only use what the player specifies?
-                String sql = "CREATE TABLE IF NOT EXISTS collectors (leaderUUID TEXT PRIMARY KEY NOT NULL, world TEXT, x INTEGER NOT NULL, y INTEGER NOT NULL, z INTEGER NOT NULL);";
+                String sql = "CREATE TABLE IF NOT EXISTS collectors (factionid INTEGER PRIMARY KEY NOT NULL, world TEXT, x INTEGER NOT NULL, y INTEGER NOT NULL, z INTEGER NOT NULL);";
 
                 try {
                     preparedStatement = connection.prepareStatement(sql);
@@ -91,8 +91,8 @@ public class SQLConnector {
             Location location = collector.getLocation();
             ps = connection.prepareStatement(sql);
 
-            // Store the UUID of the faction leader.
-            ps.setString(1, collector.getFactionLeader().toString());
+            // Store the id of the faction.
+            ps.setString(1, collector.getFaction().getId());
 
             // Setting the location data.
             ps.setString(2, location.getWorld().getName());

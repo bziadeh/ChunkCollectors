@@ -4,14 +4,23 @@ import com.cloth.ChunkCollectorPlugin;
 import com.cloth.config.Config;
 import com.cloth.objects.CollectorInventory;
 import com.cloth.objects.ItemData;
+import com.cloth.objects.SafeBlock;
+import com.cloth.packets.PacketHandler;
+import com.massivecraft.factions.*;
 import com.massivecraft.factions.struct.Role;
-import org.bukkit.Bukkit;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelPipeline;
+import io.netty.channel.ChannelPromise;
+import net.minecraft.server.v1_8_R3.PacketPlayOutBlockAction;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -21,6 +30,7 @@ import org.bukkit.event.entity.SpawnerSpawnEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
@@ -29,9 +39,9 @@ import java.util.UUID;
 /**
  * Created by Brennan on 1/4/2020.
  */
-public class ChunkCollector implements Listener {
+public class ChunkCollector extends SafeBlock implements Listener {
 
-    private UUID factionLeader;
+    private Faction faction;
 
     private Location location;
 
@@ -43,12 +53,14 @@ public class ChunkCollector implements Listener {
 
     private String type;
 
-    public ChunkCollector(Player factionLeader, Location location, String type) {
+    public ChunkCollector(Faction faction, Location location, String type) {
+        super(location);
+
         random = new Random();
 
         itemCollection = new HashMap<>();
 
-        this.factionLeader = factionLeader.getUniqueId();
+        this.faction = faction;
 
         this.location = location;
 
@@ -102,12 +114,12 @@ public class ChunkCollector implements Listener {
     }
 
     /**
-     * Gets the faction leader associated with this collector.
+     * Gets the faction associated with this collector.
      *
      * @return the faction leader's UUID.
      */
-    public UUID getFactionLeader() {
-        return factionLeader;
+    public Faction getFaction() {
+        return faction;
     }
 
     /**
@@ -152,8 +164,10 @@ public class ChunkCollector implements Listener {
      *
      * @param event the PlayerInteractEvent.
      */
-    @EventHandler
+    @EventHandler (priority = EventPriority.HIGHEST)
     public void onCollectorInteract(PlayerInteractEvent event) {
+        boolean wasCancelled = event.isCancelled();
+
         if(event.getPlayer().isSneaking()) {
             return;
         }
@@ -161,7 +175,27 @@ public class ChunkCollector implements Listener {
         if(isThisCollector(event.getClickedBlock()) && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             event.setCancelled(true);
 
-            // check if same faction (& faction role for permission)
+            Player player = event.getPlayer();
+
+            FPlayer fp = FPlayers.getInstance().getByPlayer(player);
+
+            // Someone outside of the faction trying to sell the contents...
+            if(!fp.hasFaction() || !fp.getFaction().equals(faction)) {
+                return;
+            }
+
+            int rank;
+
+            if(fp.getRole().value < (rank = Config.SELL_COLLECTOR_RANK)) {
+                player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
+                return;
+            }
+
+            // Remove the chat packet sent by Factions.
+            if(wasCancelled) {
+                PacketHandler.playersToRemove.add(player.getName());
+            }
+
             event.getPlayer().openInventory(inventory.get());
         }
     }
@@ -174,11 +208,25 @@ public class ChunkCollector implements Listener {
     @EventHandler
     public void onCollectorBreak(BlockBreakEvent event) {
         if(isThisCollector(event.getBlock())) {
-            if(!event.isCancelled()) {
-                event.setCancelled(true);
+            event.setCancelled(true);
+
+            FPlayer player;
+
+            if((player = FPlayers.getInstance().getByPlayer(event.getPlayer())).hasFaction()) {
+
+                if(!player.getFaction().equals(faction)) {
+                    return;
+                }
+
+                int rank;
+
+                if(player.getRole().value < (rank = Config.DESTROY_COLLECTOR_RANK)) {
+                    player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
+                    return;
+                }
+
                 destroy(event.getBlock().getLocation(), true);
 
-                // check faction role for permission?
                 event.getPlayer().sendMessage(Config.COLLECTOR_BREAK.replaceAll("%type%",
                         Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
             }
@@ -337,5 +385,14 @@ public class ChunkCollector implements Listener {
                 itemCollection.put(material, itemCollection.get(material) + random.nextInt(max) + 1);
             }
         }
+    }
+
+    /**
+     * Gets the type of this collector.
+     *
+     * @return the type.
+     */
+    public String getType() {
+        return type;
     }
 }
