@@ -50,7 +50,6 @@ collectors:
       - '&aLeft-click to sell.'
       pricePer: 125
 
-
 #################################################################
 #                           Messages                            #
 #                                                               #
@@ -60,21 +59,23 @@ collectors:
 #################################################################
 
 # General messages.
-no-permission: '&cYou do not have permission to access this.'
+no-permission: '&cYou do not have permission to do this.'
 incorrect-syntax: '&cIncorrect syntax, please try again.'
 reload-config: '&aYou reloaded the configuration file.'
 player-not-found: '&cCould not find the specified player.'
 must-have-faction: '&cYou must be in a faction to do this.'
+chunk-occupied: '&cThere is already a %type% &cin this chunk.'
 
 # Collector messages.
 collector-place: '&aYou placed: %type%'
-collector-place-failure: '&aYou cannot place a chunk collector here.'
+collector-place-failure: '&cYou cannot place a chunk collector here.'
 collector-break: '&cYou removed: %type%'
 collector-break-failure: '&aYou are not allowed to break this chunk collector.'
 collector-sell: '&aSuccessfully sold &f%amount%x %name% &afor &f$%price%.'
 collector-invalid: '&cThe collector you specified cannot be found.'
 collector-give: '&aYou gave %name%: %type% &fx %amount%&a'
 collector-receive: '&aYou received: %type% &fx %amount%&a'
+collector-deny: '&cYou must be atleast %rank% &cto do this.'
 
 #################################################################
 #                      Permission Settings                      #
@@ -85,13 +86,10 @@ collector-receive: '&aYou received: %type% &fx %amount%&a'
 #                                                               #
 #################################################################
 
-# Here, we are setting it so that only moderators can place and destroy collectors,
-# but anyone with the NORMAL rank or above can access and use them. Feel free to
-# change these values to your liking using the information provided above.
-
-place-collector: 2
-destroy-collector: 2
-access-collector: 1
+permissions:
+  place-collector: 2
+  destroy-collector: 2
+  sell-collector: 2
 
 #################################################################
 #                        Placeable Item                         #
@@ -102,7 +100,7 @@ access-collector: 1
 #################################################################
 
 collector:
-  type: BEACON
+  type: HOPPER
   glowing: true
   lore:
     - ''

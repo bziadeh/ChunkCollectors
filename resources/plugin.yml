@@ -2,6 +2,7 @@ name: ChunkCollectors
 version: 2.0
 author: Cloth
 main: com.cloth.ChunkCollectorPlugin
+depends: [Factions]
 commands:
   collector:
     description: Displays the available chunk collector commands.
