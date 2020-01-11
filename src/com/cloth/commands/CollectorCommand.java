@@ -8,6 +8,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 /**
  * Created by Brennan on 1/4/2020.
@@ -73,12 +74,16 @@ public class CollectorCommand implements CommandExecutor {
 
         int amount = Integer.parseInt(args[3]);
 
+        ItemStack item = new ItemStack(ChunkCollector.getCollectorItem(type));
+
+        item.setAmount(amount);
+
         // If the user's inventory is full, drop the item at their location.
         if(target.getInventory().firstEmpty() == -1) {
-            target.getWorld().dropItemNaturally(target.getLocation(), ChunkCollector.getCollectorItem(type));
+            target.getWorld().dropItem(target.getLocation(), item);
         } else {
             // use the type variable to change the displayname?
-            target.getInventory().addItem(ChunkCollector.getCollectorItem(type));
+            target.getInventory().addItem(item);
         }
 
         // Send the sent and receive messages.

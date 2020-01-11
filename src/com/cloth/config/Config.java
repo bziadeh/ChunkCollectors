@@ -35,6 +35,7 @@ public class Config {
     public static List<String> COLLECTOR_ITEM_LORE;
     public static Map<String, String> COLLECTOR_ITEM_NAMES;
     public static boolean COLLECTOR_ITEM_GLOWING;
+    public static boolean COLLECTOR_HOLOGRAMS_ENABLED;
     public static String PLAYER_NOT_FOUND;
     public static String NO_PERMISSION;
     public static String MUST_HAVE_FACTION;
@@ -94,6 +95,7 @@ public class Config {
                 COLLECTOR_TYPES = config.getConfigurationSection("collectors").getKeys(false);
                 COLLECTOR_ITEM_NAMES = new HashMap<>();
                 COLLECTOR_ITEM_GLOWING = config.getBoolean("collector.glowing");
+                COLLECTOR_HOLOGRAMS_ENABLED = config.getBoolean("holograms");
 
                 // Stores all of the custom item names.
                 config.getConfigurationSection("collectors")

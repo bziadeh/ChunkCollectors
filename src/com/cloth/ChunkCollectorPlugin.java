@@ -1,9 +1,10 @@
 package com.cloth;
 
+import com.cloth.collectors.ChunkCollector;
 import com.cloth.collectors.CollectorHandler;
 import com.cloth.commands.CollectorCommand;
 import com.cloth.config.Config;
-import com.cloth.config.SQLConnector;
+import com.cloth.config.SQL;
 import com.cloth.inventory.InventoryCreator;
 import com.cloth.inventory.InventoryHandler;
 import com.cloth.packets.PacketHandler;
@@ -17,7 +18,6 @@ import org.bukkit.scheduler.BukkitRunnable;
 /**
  * Created by Brennan on 1/4/2020.
  */
-
 public class ChunkCollectorPlugin extends JavaPlugin {
 
     private static ChunkCollectorPlugin instance;
@@ -31,7 +31,6 @@ public class ChunkCollectorPlugin extends JavaPlugin {
     public static Economy economy = null;
 
     public void onEnable() {
-        // Make sure Vault is installed...
         if(!setupEconomy()) {
             getLogger().severe("Cannot find Vault economy... disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
@@ -45,10 +44,10 @@ public class ChunkCollectorPlugin extends JavaPlugin {
         new BukkitRunnable() {
             @Override
             public void run() {
-                // Asynchronously create the table in our SQLite database...
-                SQLConnector.createTableIfNotExists();
-                // Saves all collectors in memory to the SQLite database every 'x' amount of minutes.
-                collectorHandler = new CollectorHandler().start();
+                // Asynchronously create the table in our SQL database...
+                SQL.createTableIfNotExists();
+                // Creates our collector handler.
+                collectorHandler = new CollectorHandler();
                 // This inventory creator makes a default (and reusable) inventory for new collectors.
                 inventoryCreator = new InventoryCreator();
                 // Handles the collector inventory (selling).
@@ -57,8 +56,19 @@ public class ChunkCollectorPlugin extends JavaPlugin {
                 new CollectorCommand(instance);
                 // Handles all packet related code.
                 new PacketHandler(instance);
+                // Finally, load collectors from database.
+                SQL.loadCollectors();
             }
-        }.runTaskLater(this, 10);
+        }.runTaskLater(this, 30);
+    }
+
+    /**
+     * Saves all collectors to the database when the server stops.
+     */
+    public void onDisable() {
+        for(ChunkCollector chunkCollector : collectorHandler.getCollectorList()) {
+            SQL.saveCollector(chunkCollector);
+        }
     }
 
     /**

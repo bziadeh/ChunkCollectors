@@ -2,11 +2,15 @@ package com.cloth.objects;
 
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.Hopper;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
+import org.bukkit.event.inventory.InventoryPickupItemEvent;
+import org.bukkit.event.inventory.InventoryType;
+
 import java.util.List;
 
 /**
@@ -44,6 +48,17 @@ public class SafeBlock {
     public void onPistonRetract(BlockPistonRetractEvent event) {
         if(containsChunkCollector(event.getBlocks()))
             event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onBlockPickup(InventoryPickupItemEvent event) {
+        if(event.getInventory().getType() == InventoryType.HOPPER) {
+            Hopper hopper = (Hopper) event.getInventory().getHolder();
+
+            if(hopper.getLocation().equals(location)) {
+                event.setCancelled(true);
+            }
+        }
     }
 
     private boolean containsChunkCollector(List<Block> blockList) {

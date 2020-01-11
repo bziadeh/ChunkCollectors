@@ -1,18 +1,13 @@
 package com.cloth.packets;
 
 import com.cloth.ChunkCollectorPlugin;
-import com.cloth.collectors.ChunkCollector;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketEvent;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.minecraft.server.v1_8_R3.IChatBaseComponent;
 import net.minecraft.server.v1_8_R3.PacketPlayOutChat;
 import net.minecraft.server.v1_8_R3.PlayerConnection;
-import org.apache.commons.lang3.StringUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -20,11 +15,12 @@ import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by Brennan on 1/8/2020.
@@ -78,36 +74,39 @@ public class PacketHandler {
                         JSONObject jsonObject = new JSONObject(wrapper.getMessage().getJson());
 
                         if(jsonObject.has("extra")) {
+                            try {
+                                JSONArray jsonArray = (JSONArray) jsonObject.get("extra");
 
-                            JSONArray jsonArray = (JSONArray) jsonObject.get("extra");
+                                double similar = getSimilarity(jsonArray.get(0).toString(), message);
 
-                            double similar = getSimilarity(jsonArray.get(0).toString(), message);
+                                if(similar > 0.8) {
 
-                            if(similar > 0.8) {
+                                    event.setCancelled(true);
 
-                                event.setCancelled(true);
+                                    new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
 
-                                new BukkitRunnable() {
-                                    @Override
-                                    public void run() {
+                                            if(PacketHandler.playersToRemove.contains(event.getPlayer().getName())) {
 
-                                        if(PacketHandler.playersToRemove.contains(event.getPlayer().getName())) {
+                                                playersToRemove.remove(event.getPlayer().getName());
 
-                                            playersToRemove.remove(event.getPlayer().getName());
+                                            } else {
+                                                jsonArray.put(0, jsonArray.get(0) + "§k");
 
-                                        } else {
-                                            jsonArray.put(0, jsonArray.get(0) + "§k");
+                                                IChatBaseComponent component = IChatBaseComponent.ChatSerializer.a(jsonObject.toString());
 
-                                            IChatBaseComponent component = IChatBaseComponent.ChatSerializer.a(jsonObject.toString());
+                                                Player player = event.getPlayer();
 
-                                            Player player = event.getPlayer();
+                                                PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
 
-                                            PlayerConnection connection = ((CraftPlayer) player).getHandle().playerConnection;
-
-                                            connection.sendPacket(new PacketPlayOutChat(component));
+                                                connection.sendPacket(new PacketPlayOutChat(component));
+                                            }
                                         }
-                                    }
-                                }.runTaskLater(ChunkCollectorPlugin.getInstance(), 2);
+                                    }.runTaskLater(ChunkCollectorPlugin.getInstance(), 2);
+                                }
+                            } catch (JSONException exception) {
+                                // The JSONObject text was invalid...
                             }
                         }
                     }
@@ -117,6 +116,7 @@ public class PacketHandler {
     }
 
     private double getSimilarity(String a, String b) {
+
         if(a.endsWith("§k") || b.endsWith("§k")) {
             return 0;
         }
@@ -124,6 +124,10 @@ public class PacketHandler {
         String[] asplit = a.split(" ");
 
         String[] bsplit = b.split(" ");
+
+        if(asplit.length != bsplit.length) {
+            return 0;
+        }
 
         double same = 0;
 

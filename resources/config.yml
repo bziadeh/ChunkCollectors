@@ -1,10 +1,8 @@
 #################################################################
-#                   General Settings + Layout                   #
+#                        General Settings                       #
 #                                                               #
-#     Customize the collectors by adding or removing mobs to    #
-#      your liking. You can create as many custom collectors    #
-#         as you want, name them differently and support        #
-#          different drops (mob drops, farm drops, etc.)        #
+#    If you want maximum performance (TPS), be sure to set      #
+#    the collector mode to INSTANT, and holograms to false.     #
 #                                                               #
 #################################################################
 
@@ -17,7 +15,18 @@ size: 45
 # The mode of the collector. Either: FALL_DEATH, INSTANT
 mode: INSTANT
 
-# Here you create your custom collectors. To help you get started, I made two default collectors.
+# Enable or disable collector holograms.
+holograms: true
+
+#################################################################
+#                   Add & Customize Collectors                  #
+#                                                               #
+#             You can create as many custom collectors          #
+#         as you want, name them differently and support        #
+#          different drops (mob drops, farm drops, etc.)        #
+#                                                               #
+#################################################################
+
 collectors:
   farm:
     item-name: '&bFarm Collector'

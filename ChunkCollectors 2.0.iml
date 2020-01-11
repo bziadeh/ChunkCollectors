@@ -16,5 +16,6 @@
     <orderEntry type="library" name="ProtocolLib" level="project" />
     <orderEntry type="library" name="json-20140107" level="project" />
     <orderEntry type="library" name="commons-lang3-3.9" level="project" />
+    <orderEntry type="library" name="HolographicDisplays" level="project" />
   </component>
 </module>

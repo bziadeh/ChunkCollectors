@@ -2,7 +2,8 @@ package com.cloth.collectors;
 
 import com.cloth.ChunkCollectorPlugin;
 import com.cloth.config.Config;
-import com.cloth.config.SQLConnector;
+import com.cloth.config.SQL;
+import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.massivecraft.factions.*;
 import com.massivecraft.factions.struct.Role;
 import org.bukkit.Location;
@@ -12,7 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -33,13 +34,14 @@ public class CollectorHandler implements Listener {
     }
 
     /**
-     * Adds the chunk collector to the collectList, does not add it to the database.
-     * The start() method will handle that.
+     * Adds the chunk collector to the collectList, and to the database.
      *
      * @param collector the collector that was placed.
      */
     public void addCollector(ChunkCollector collector) {
         collectorList.add(collector);
+
+        SQL.saveCollector(collector);
     }
 
     /**
@@ -55,8 +57,13 @@ public class CollectorHandler implements Listener {
             inventory.getViewers().get(i).closeInventory();
         }
 
+        deleteHologramIfExists(collector);
+
         ChunkCollectorPlugin.getInstance().unregisterListener(collector);
+
         collectorList.remove(collector);
+
+        SQL.removeCollector(collector);
     }
 
     /**
@@ -66,24 +73,6 @@ public class CollectorHandler implements Listener {
      */
     public List<ChunkCollector> getCollectorList() {
         return Collections.unmodifiableList(collectorList);
-    }
-
-    /**
-     * TEMPORARY: Starts the chunk collector 'save runnable'. Saves all cached collectors
-     * to the SQLite database every 10 minutes.
-     */
-    public CollectorHandler start() {
-        final int minutes = 10;
-        final int time = 20 * 60 * minutes;
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                collectorList.forEach(SQLConnector::saveCollector);
-            }
-        }.runTaskTimerAsynchronously(ChunkCollectorPlugin.getInstance(), time, time);
-
-        return this;
     }
 
     /**
@@ -165,6 +154,14 @@ public class CollectorHandler implements Listener {
             player.sendMessage(Config.COLLECTOR_PLACE.replaceAll("%type%",
                     Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
             addCollector(new ChunkCollector(factionPlayer.getFaction(), event.getBlockPlaced().getLocation(), type));
+        }
+    }
+
+    private void deleteHologramIfExists(ChunkCollector collector) {
+        Hologram hologram;
+
+        if((hologram = collector.getHologram()) != null) {
+            hologram.delete();
         }
     }
 
