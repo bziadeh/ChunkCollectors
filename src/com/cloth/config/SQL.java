@@ -12,6 +12,7 @@ import sun.security.krb5.Config;
 
 import java.sql.*;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
 import static java.lang.Thread.sleep;
 
@@ -152,8 +153,14 @@ public class SQL {
         }).start();
     }
 
-    public static void loadCollectors() {
+    public static void loadCollectors(CountDownLatch latch) {
         new Thread(() -> {
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
             Connection connection = null;
 
             try {

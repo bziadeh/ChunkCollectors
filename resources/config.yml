@@ -10,7 +10,7 @@
 title: 'ChunkCollector'
 
 # The amount of inventory slots. (minimum: 27)
-size: 45
+size: 27
 
 # The mode of the collector. Either: FALL_DEATH, INSTANT
 mode: INSTANT
@@ -27,34 +27,70 @@ holograms: true
 #                                                               #
 #################################################################
 
+# Here are the two default collectors. Feel free to use them as templates
+# to build your own custom chunk collectors. Also, if you want an item
+# to have no lore, simply set the lore option to NONE.
 collectors:
   farm:
     item-name: '&bFarm Collector'
     background: NONE
     SUGAR_CANE:
-      slot: 1
+      slot: 11
       name: '&fSugarcane'
-      lore:
-      - '&aLeft-click to sell.'
+      lore: NONE
+      pricePer: 175
+    WHEAT:
+      slot: 13
+      name: '&fWheat'
+      lore: NONE
+      pricePer: 175
+    CACTUS:
+      slot: 15
+      name: '&fCactus'
+      lore: NONE
       pricePer: 175
   mob:
     item-name: '&6Mob Collector'
     background: BLACK
+    BLAZE_ROD:
+      slot: 10
+      name: '&fBlaze Rod'
+      lore:
+      - '&aLeft-click to sell.'
+      pricePer: 100
     BONE:
-      slot: 20
+      slot: 11
       name: '&fBone'
       lore:
       - '&aLeft-click to sell.'
       pricePer: 100
+    SULPHUR:
+      slot: 12
+      name: '&fGunpowder'
+      lore:
+      - '&aLeft-click to sell.'
+      pricePer: 175
     ARROW:
-      slot: 22
+      slot: 13
       name: '&fArrow'
       lore:
       - '&aLeft-click to sell.'
       pricePer: 175
+    SPIDER_EYE:
+      slot: 14
+      name: '&fSpider Eye'
+      lore:
+      - '&aLeft-click to sell.'
+      pricePer: 175
     ROTTEN_FLESH:
-      slot: 24
+      slot: 15
       name: '&fRotten Flesh'
+      lore:
+      - '&aLeft-click to sell.'
+      pricePer: 125
+    STRING:
+      slot: 16
+      name: '&fString'
       lore:
       - '&aLeft-click to sell.'
       pricePer: 125
@@ -85,20 +121,6 @@ collector-invalid: '&cThe collector you specified cannot be found.'
 collector-give: '&aYou gave %name%: %type% &fx %amount%&a'
 collector-receive: '&aYou received: %type% &fx %amount%&a'
 collector-deny: '&cYou must be atleast %rank% &cto do this.'
-
-#################################################################
-#                      Permission Settings                      #
-#                                                               #
-#       Here you can edit all of the collector permission       #
-#               settings to your server's style.                #
-#         (0 = RECRUIT, 1 = NORMAL, 2 = MODERATOR, etc.)        #
-#                                                               #
-#################################################################
-
-permissions:
-  place-collector: 2
-  destroy-collector: 2
-  sell-collector: 2
 
 #################################################################
 #                        Placeable Item                         #

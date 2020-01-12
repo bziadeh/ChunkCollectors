@@ -3,12 +3,15 @@ package com.cloth.commands;
 import com.cloth.ChunkCollectorPlugin;
 import com.cloth.collectors.ChunkCollector;
 import com.cloth.config.Config;
+import com.cloth.inventory.Permissions;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import java.security.Permission;
 
 /**
  * Created by Brennan on 1/4/2020.
@@ -22,7 +25,7 @@ public class CollectorCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
 
-        if(!commandSender.hasPermission("chunkcollectors.give") && !commandSender.isOp()) {
+        if(!commandSender.hasPermission("chunkcollectors.*") && !commandSender.isOp()) {
             commandSender.sendMessage(Config.NO_PERMISSION);
             return false;
         }
@@ -34,15 +37,27 @@ public class CollectorCommand implements CommandExecutor {
 
         if(args.length == 1) {
 
-            if(!args[0].equalsIgnoreCase("reload")) {
-                commandSender.sendMessage(Config.INCORRECT_SYNTAX);
-                sendBaseCommands(commandSender, label);
-                return false;
+            if(args[0].equalsIgnoreCase("reload")) {
+                ChunkCollectorPlugin.getInstance().getCollectorConfig().loadConfig(true);
+                commandSender.sendMessage(Config.RELOAD_CONFIG);
+                return true;
             }
 
-            ChunkCollectorPlugin.getInstance().getCollectorConfig().loadConfig(true);
-            commandSender.sendMessage(Config.RELOAD_CONFIG);
-            return true;
+            if(args[0].equalsIgnoreCase("permissions") || args[0].equalsIgnoreCase("perms")) {
+
+                if(!(commandSender instanceof Player)) {
+                    commandSender.sendMessage("Only players can access the permission GUI. Sorry!");
+                    return false;
+                }
+
+                Player player = (Player) commandSender;
+                player.openInventory(Permissions.getGUI());
+                return true;
+            }
+
+            commandSender.sendMessage(Config.INCORRECT_SYNTAX);
+            sendBaseCommands(commandSender, label);
+            return false;
         }
 
         if(args.length != 4 || (args.length == 4 && !args[0].equalsIgnoreCase("give"))) {
@@ -101,6 +116,7 @@ public class CollectorCommand implements CommandExecutor {
     private void sendBaseCommands(CommandSender commandSender, String label) {
         commandSender.sendMessage("§6/" + label + " give <player> <type> <amount>");
         commandSender.sendMessage("§6/" + label + " reload §7 - only reloads the messages.");
+        commandSender.sendMessage("§6/" + label + " permissions");
     }
 
     /**

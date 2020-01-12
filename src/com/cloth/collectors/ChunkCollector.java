@@ -15,6 +15,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.ChannelPromise;
 import net.minecraft.server.v1_8_R3.PacketPlayOutBlockAction;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -27,6 +28,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockGrowEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.SpawnerSpawnEvent;
@@ -34,6 +36,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.material.Crops;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -219,28 +222,70 @@ public class ChunkCollector extends SafeBlock implements Listener {
      */
     @EventHandler
     public void onCollectorBreak(BlockBreakEvent event) {
-        if(isThisCollector(event.getBlock())) {
-            event.setCancelled(true);
 
-            FPlayer player;
+        Block block;
 
-            if((player = FPlayers.getInstance().getByPlayer(event.getPlayer())).hasFaction()) {
+        // Checks if the block being broken is NOT a collector, and in the chunk.
+        if(!isThisCollector((block = event.getBlock()))) {
+            if(block.getLocation().getChunk().equals(location.getChunk())) {
+                ItemStack[] drops = block.getDrops().toArray(new ItemStack[0]);
+                for(int i = drops.length - 1; i >= 0; i--) {
+                    ItemStack drop = drops[i];
+                    Material type = drop.getType();
 
-                if(!player.getFaction().equals(faction)) {
-                    return;
+                    // Are we collecting the item being broken?
+                    if(inventory.isCollecting(type)) {
+                        event.getBlock().setType(Material.AIR);
+                        itemCollection.put(type, itemCollection.get(type) + drop.getAmount());
+                        update();
+                    }
                 }
+            }
+            return;
+        }
 
-                int rank;
+        event.setCancelled(true);
 
-                if(player.getRole().value < (rank = Config.DESTROY_COLLECTOR_RANK)) {
-                    player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
-                    return;
+        FPlayer player;
+
+        if((player = FPlayers.getInstance().getByPlayer(event.getPlayer())).hasFaction()) {
+
+            if(!player.getFaction().equals(faction)) {
+                return;
+            }
+
+            int rank;
+
+            if(player.getRole().value < (rank = Config.DESTROY_COLLECTOR_RANK)) {
+                player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
+                return;
+            }
+
+            destroy(event.getBlock().getLocation(), true);
+
+            event.getPlayer().sendMessage(Config.COLLECTOR_BREAK.replaceAll("%type%",
+                    Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onCropCrow(BlockGrowEvent event) {
+        Chunk chunk = event.getBlock().getChunk();
+        Material type = event.getNewState().getType();
+
+        // Converting SUGAR_CANE_BLOCK to SUGAR_CANE
+        if(type == Material.SUGAR_CANE_BLOCK) {
+            type = Material.SUGAR_CANE;
+        }
+
+        // Checking if the block is cactus or sugarcane.
+        if(type == Material.SUGAR_CANE || type == Material.CACTUS) {
+            if(chunk.equals(location.getChunk())) {
+                if(inventory.isCollecting(type)) {
+                    event.setCancelled(true);
+                    itemCollection.put(type, itemCollection.get(type) + 1);
+                    update();
                 }
-
-                destroy(event.getBlock().getLocation(), true);
-
-                event.getPlayer().sendMessage(Config.COLLECTOR_BREAK.replaceAll("%type%",
-                        Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
             }
         }
     }
@@ -338,6 +383,29 @@ public class ChunkCollector extends SafeBlock implements Listener {
 
             inventory.get().getViewers().forEach(viewer -> ((Player) viewer).updateInventory());
         }
+
+        if(hologram != null) {
+            if(hologram.size() > 1) {
+                hologram.removeLine(1);
+                hologram.insertTextLine(1, "§a$" + getTotalWorth());
+            }
+        }
+    }
+
+    /**
+     * Adds all the collected items and returns the
+     * amount of money you would get if sold.
+     *
+     * @return the total amount of money.
+     */
+    public double getTotalWorth() {
+        double total = 0;
+
+        for(Material material : itemCollection.keySet()) {
+            total += itemCollection.get(material) * inventory.getPrice(material);
+        }
+
+        return total;
     }
 
     /**
@@ -371,6 +439,11 @@ public class ChunkCollector extends SafeBlock implements Listener {
             case SKELETON:
                 add(2, Material.BONE, Material.ARROW);
                 break;
+            case SPIDER:
+                add(2, Material.STRING, Material.SPIDER_EYE);
+                break;
+            case PIG_ZOMBIE:
+                add(2, Material.GOLD_INGOT, Material.GOLD_NUGGET);
             case SLIME:
                 add(2, Material.SLIME_BALL);
                 break;
@@ -503,7 +576,7 @@ public class ChunkCollector extends SafeBlock implements Listener {
                 public void run() {
                     hologram = HologramsAPI.createHologram(plugin, location.clone().add(0.5, 1.25, 0.5));
                     hologram.insertTextLine(0, Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§"));
-                    hologram.insertTextLine(1, "§a$0.0");
+                    hologram.insertTextLine(1, "§a$" + getTotalWorth());
                     hologram.insertTextLine(2, "");
                     hologram.insertTextLine(3, "");
                     hologram.insertItemLine(4, new ItemStack(itemCollection.keySet().toArray(new Material[0])[0]));

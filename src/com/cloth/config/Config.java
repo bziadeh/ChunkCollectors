@@ -1,14 +1,16 @@
 package com.cloth.config;
 
 import com.cloth.ChunkCollectorPlugin;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
-
+import org.bukkit.configuration.file.YamlConfiguration;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 /**
  * Created by Brennan on 1/4/2020.
  */
-
 public class Config {
 
     private ChunkCollectorPlugin plugin;
@@ -16,6 +18,9 @@ public class Config {
     public Config(ChunkCollectorPlugin instance) {
         this.plugin = instance;
     }
+
+    private File file;
+    private FileConfiguration permissionsConfig;
 
     public static String COLLECTOR_TITLE;
     public static String COLLECTOR_TYPE;
@@ -53,6 +58,8 @@ public class Config {
     public Config setup() {
         plugin.saveDefaultConfig();
 
+        setPermissionDefaults();
+
         loadConfig(false); // Asynchronously loads data from the configuration file.
 
         return this;
@@ -88,10 +95,6 @@ public class Config {
 
                 INVENTORY_SIZE = config.getInt("size");
 
-                PLACE_COLLECTOR_RANK = config.getInt("permissions.place-collector");
-                DESTROY_COLLECTOR_RANK = config.getInt("permissions.destroy-collector");
-                SELL_COLLECTOR_RANK = config.getInt("permissions.sell-collector");
-
                 COLLECTOR_TYPES = config.getConfigurationSection("collectors").getKeys(false);
                 COLLECTOR_ITEM_NAMES = new HashMap<>();
                 COLLECTOR_ITEM_GLOWING = config.getBoolean("collector.glowing");
@@ -117,5 +120,54 @@ public class Config {
     public String getString(String args) {
         return plugin.getConfig().getString(args)
                 .replaceAll("&", "§");
+    }
+
+    public FileConfiguration getPermissionsConfig() {
+        return permissionsConfig;
+    }
+
+    public void savePermissionsConfig() {
+        try {
+            permissionsConfig.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void setPermissionDefaults() {
+        new Thread(() -> {
+            file = new File(plugin.getDataFolder(), "permissions.yml");
+
+            if(!file.exists()) {
+                file.getParentFile().mkdirs();
+                plugin.saveResource("permissions.yml", false);
+            }
+
+            permissionsConfig = new YamlConfiguration();
+
+            try {
+                permissionsConfig.load(file);
+            } catch (IOException | InvalidConfigurationException e) {
+                e.printStackTrace();
+            }
+
+            if(!permissionsConfig.contains("permissions")) {
+
+                permissionsConfig.set("permissions.place-collector", 2);
+
+                permissionsConfig.set("permissions.destroy-collector", 2);
+
+                permissionsConfig.set("permissions.sell-collector", 2);
+
+                savePermissionsConfig();
+            }
+
+            PLACE_COLLECTOR_RANK = permissionsConfig.getInt("permissions.place-collector");
+
+            DESTROY_COLLECTOR_RANK = permissionsConfig.getInt("permissions.destroy-collector");
+
+            SELL_COLLECTOR_RANK = permissionsConfig.getInt("permissions.sell-collector");
+
+        }).start();
     }
 }

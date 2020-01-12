@@ -1,0 +1,4 @@
+permissions:
+  place-collector: 2
+  destroy-collector: 2
+  sell-collector: 2

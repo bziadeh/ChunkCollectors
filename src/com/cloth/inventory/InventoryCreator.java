@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Brennan on 1/4/2020.
@@ -25,7 +26,11 @@ public class InventoryCreator {
 
     private Map<String, CollectorInventory> collectorInventories;
 
-    public InventoryCreator() {
+    private CountDownLatch latch;
+
+    public InventoryCreator(CountDownLatch latch) {
+        this.latch = latch;
+
         collectorInventories = new HashMap<>();
 
         new BukkitRunnable() {
@@ -84,9 +89,16 @@ public class InventoryCreator {
      * @return the list with translated color codes.
      */
     private List<String> getLore(String args) {
+        ChunkCollectorPlugin plugin = ChunkCollectorPlugin.getInstance();
+
         List<String> converted = new ArrayList<>();
 
-        ChunkCollectorPlugin.getInstance().getConfig().getList(args).forEach(message -> {
+        if(String.valueOf(plugin.getConfig().get(args))
+                .equalsIgnoreCase("NONE")) {
+            return converted;
+        }
+
+        plugin.getConfig().getList(args).forEach(message -> {
             converted.add(message.toString()
                     .replaceAll("&", "§"));
         });
@@ -139,6 +151,9 @@ public class InventoryCreator {
 
             collectorInventory.setInventory(inv);
             collectorInventories.put(collector, collectorInventory);
+
+            // We're done with in this thread, countdown.
+            latch.countDown();
         }
     }
 }

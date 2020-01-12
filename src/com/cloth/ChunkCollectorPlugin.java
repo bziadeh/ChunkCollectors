@@ -7,6 +7,7 @@ import com.cloth.config.Config;
 import com.cloth.config.SQL;
 import com.cloth.inventory.InventoryCreator;
 import com.cloth.inventory.InventoryHandler;
+import com.cloth.inventory.Permissions;
 import com.cloth.packets.PacketHandler;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.event.HandlerList;
@@ -14,6 +15,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Brennan on 1/4/2020.
@@ -41,6 +44,9 @@ public class ChunkCollectorPlugin extends JavaPlugin {
         // Loads content from config.yml.
         config = new Config(this).setup();
 
+        // We create a latch so our threads are started at the correct time.
+        CountDownLatch latch = new CountDownLatch(1);
+
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -49,15 +55,17 @@ public class ChunkCollectorPlugin extends JavaPlugin {
                 // Creates our collector handler.
                 collectorHandler = new CollectorHandler();
                 // This inventory creator makes a default (and reusable) inventory for new collectors.
-                inventoryCreator = new InventoryCreator();
+                inventoryCreator = new InventoryCreator(latch);
                 // Handles the collector inventory (selling).
                 new InventoryHandler();
                 // Handles the chunk collector command.
                 new CollectorCommand(instance);
                 // Handles all packet related code.
                 new PacketHandler(instance);
+                // Setup our in-game permissions settings GUI.
+                new Permissions();
                 // Finally, load collectors from database.
-                SQL.loadCollectors();
+                SQL.loadCollectors(latch);
             }
         }.runTaskLater(this, 30);
     }
@@ -69,6 +77,7 @@ public class ChunkCollectorPlugin extends JavaPlugin {
         for(ChunkCollector chunkCollector : collectorHandler.getCollectorList()) {
             SQL.saveCollector(chunkCollector);
         }
+        Permissions.save();
     }
 
     /**

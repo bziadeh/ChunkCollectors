@@ -79,7 +79,7 @@ public class PacketHandler {
 
                                 double similar = getSimilarity(jsonArray.get(0).toString(), message);
 
-                                if(similar > 0.8) {
+                                if(similar > 0.7) {
 
                                     event.setCancelled(true);
 
@@ -125,19 +125,49 @@ public class PacketHandler {
 
         String[] bsplit = b.split(" ");
 
-        if(asplit.length != bsplit.length) {
-            return 0;
-        }
+        return compare(asplit, bsplit);
+    }
 
+    private double compare(String[] asplit, String[] bsplit) {
         double same = 0;
 
-        // they are the same length, so this works fine.
-        for(int i = 0; i < asplit.length; i++) {
-            if(asplit[i].equalsIgnoreCase(bsplit[i])) {
-                same++;
+        if(asplit.length == bsplit.length) {
+            for(int i = 0; i < asplit.length; i++) {
+                if(asplit[i].equalsIgnoreCase(bsplit[i])) {
+                    same++;
+                }
             }
+            return same / asplit.length;
         }
 
-        return same / asplit.length;
+        if(bsplit.length > asplit.length) {
+            for(int i = 0; i < bsplit.length; i++) {
+
+                if(i == asplit.length) {
+                    break;
+                }
+
+                if(asplit[i].equalsIgnoreCase(bsplit[i])) {
+                    same++;
+                }
+            }
+            return same / bsplit.length;
+        }
+
+        if(asplit.length > bsplit.length) {
+            for(int i = 0; i < asplit.length; i++) {
+
+                if(i == bsplit.length) {
+                    break;
+                }
+
+                if(asplit[i].equalsIgnoreCase(bsplit[i])) {
+                    same++;
+                }
+            }
+            return same / asplit.length;
+        }
+
+        return 0;
     }
 }
