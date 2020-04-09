@@ -2,8 +2,10 @@ package com.cloth.collectors;
 
 import com.cloth.ChunkCollectorPlugin;
 import com.cloth.config.Config;
-import com.cloth.config.SQL;
+import com.cloth.util.InventoryUtil;
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.massivecraft.factions.*;
 import com.massivecraft.factions.struct.Role;
 import org.bukkit.Location;
@@ -14,6 +16,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.*;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -40,8 +44,6 @@ public class CollectorHandler implements Listener {
      */
     public void addCollector(ChunkCollector collector) {
         collectorList.add(collector);
-
-        SQL.saveCollector(collector);
     }
 
     /**
@@ -63,7 +65,7 @@ public class CollectorHandler implements Listener {
 
         collectorList.remove(collector);
 
-        SQL.removeCollector(collector);
+        // remove collector from database
     }
 
     /**
@@ -153,7 +155,7 @@ public class CollectorHandler implements Listener {
             // Yay, it succeeded!
             player.sendMessage(Config.COLLECTOR_PLACE.replaceAll("%type%",
                     Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
-            addCollector(new ChunkCollector(factionPlayer.getFaction(), event.getBlockPlaced().getLocation(), type));
+            addCollector(new ChunkCollector(factionPlayer.getFaction().getId(), event.getBlockPlaced().getLocation(), type));
         }
     }
 
@@ -180,5 +182,32 @@ public class CollectorHandler implements Listener {
             }
         }
         return null;
+    }
+
+    public void loadAll() {
+        try (Reader reader = new FileReader("collectors.json")) {
+            Gson gson = new Gson();
+            Type listType = new TypeToken<List<ChunkCollector>>(){}.getType();
+            collectorList = gson.fromJson(reader, listType);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        collectorList.forEach(collector -> {
+            ChunkCollectorPlugin.getInstance().registerListener(collector);
+            collector.update();
+        });
+    }
+
+    public void saveAll() {
+        collectorList.forEach(collector -> {
+            collector.setInventoryBase64(InventoryUtil.toBase64(collector.getInventory().get()));
+        });
+        try (Writer writer = new FileWriter("collectors.json")) {
+            Gson gson = new Gson();
+            gson.toJson(collectorList, writer);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

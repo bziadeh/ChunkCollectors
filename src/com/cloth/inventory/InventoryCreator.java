@@ -28,6 +28,11 @@ public class InventoryCreator {
 
     private CountDownLatch latch;
 
+    private final String user = "%%__USERNAME__%%";
+    private final String version = "%%__VERSION__%%";
+    private final String resource = "%%__RESOURCE__%%";
+    private final String timestamp = "%%__TIMESTAMP__%%";
+
     public InventoryCreator(CountDownLatch latch) {
         this.latch = latch;
 
@@ -151,9 +156,9 @@ public class InventoryCreator {
 
             collectorInventory.setInventory(inv);
             collectorInventories.put(collector, collectorInventory);
-
-            // We're done with in this thread, countdown.
-            latch.countDown();
         }
+
+        // We're done with in this thread, countdown.
+        latch.countDown();
     }
 }

@@ -1,5 +1,6 @@
 package com.cloth.objects;
 
+import com.cloth.util.LocationUtility;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.Hopper;
@@ -18,10 +19,10 @@ import java.util.List;
  */
 public class SafeBlock {
 
-    private Location location;
+    private String location;
 
     public SafeBlock(Location location) {
-        this.location = location;
+        this.location = LocationUtility.convertLocationToString(location);
     }
 
     @EventHandler
@@ -66,5 +67,9 @@ public class SafeBlock {
             if(b.getLocation().equals(location))
                 return true;
         return false;
+    }
+
+    public Location getLocation() {
+        return LocationUtility.convertStringToLocation(location);
     }
 }

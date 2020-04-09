@@ -11,6 +11,7 @@ import com.massivecraft.factions.struct.Role;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -18,9 +19,9 @@ import org.bukkit.inventory.ItemStack;
 /**
  * Created by Brennan on 1/5/2020.
  */
-public class InventoryHandler implements Listener {
+public class CollectorInventoryHandler implements Listener {
 
-    public InventoryHandler() {
+    public CollectorInventoryHandler() {
         ChunkCollectorPlugin.getInstance().registerListener(this);
     }
 
@@ -54,7 +55,15 @@ public class InventoryHandler implements Listener {
             Player player = (Player) event.getWhoClicked();
 
             if(chunkCollector.getInventory().isCollecting(itemClicked.getType())) {
-                chunkCollector.sell(itemClicked.getType(), (Player) event.getWhoClicked());
+
+                if(event.getClick() == ClickType.RIGHT) {
+                    chunkCollector.extract(itemClicked.getType(), player);
+                    return;
+                }
+
+                if(event.getClick() == ClickType.LEFT) {
+                    chunkCollector.sell(itemClicked.getType(), player);
+                }
             }
         }
     }

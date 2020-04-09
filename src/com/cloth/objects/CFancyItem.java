@@ -11,13 +11,13 @@ import java.util.*;
  * Created by Brennan on 9/30/2019.
  */
 
-public class FancyItem {
+public class CFancyItem {
 
     private final Map<String, Object> placeholders;
     private final ItemStack item;
     private final ItemMeta meta;
 
-    public FancyItem(Material type) {
+    public CFancyItem(Material type) {
         placeholders = new HashMap<>();
         item = new ItemStack(type);
         meta = item.getItemMeta();
@@ -29,7 +29,7 @@ public class FancyItem {
      * @param name The name of the item being created.
      * @return A reference to this object.
      */
-    public FancyItem setDisplayname(String name) {
+    public CFancyItem setDisplayname(String name) {
         meta.setDisplayName(name.replaceAll("&", "§"));
         return this;
     }
@@ -40,7 +40,7 @@ public class FancyItem {
      * @param lore The lore of the item being created.
      * @return A reference to this object.
      */
-    public FancyItem setLore(List<String> lore) {
+    public CFancyItem setLore(List<String> lore) {
         for(int i = lore.size() - 1; i >= 0; i--)
             lore.set(i, lore.get(i).replaceAll("&", "§"));
             meta.setLore(lore);
@@ -53,7 +53,7 @@ public class FancyItem {
      * @param itemFlag the flag being added.
      * @return A reference to this object.
      */
-    public FancyItem addItemFlag(ItemFlag itemFlag) {
+    public CFancyItem addItemFlag(ItemFlag itemFlag) {
         meta.addItemFlags(itemFlag);
         return this;
     }
@@ -65,7 +65,7 @@ public class FancyItem {
      * @param amount The amount of the item being created.
      * @return A reference to this object.
      */
-    public FancyItem setAmount(int amount) {
+    public CFancyItem setAmount(int amount) {
         item.setAmount(amount < 0 ? 1 : amount > 64 ? 64 : amount);
         return this;
     }
@@ -89,7 +89,7 @@ public class FancyItem {
      * @param placeholder the placeholder being added (ex: %uses%)
      * @param replacement the replacement being added (ex: 6)
      */
-    public FancyItem addPlaceholder(String placeholder, Object replacement) {
+    public CFancyItem addPlaceholder(String placeholder, Object replacement) {
         placeholders.put(placeholder, replacement);
         return this;
     }
@@ -121,5 +121,10 @@ public class FancyItem {
             }
         }
     }
+
+    private final String user = "%%__USERNAME__%%";
+    private final String version = "%%__VERSION__%%";
+    private final String resource = "%%__RESOURCE__%%";
+    private final String timestamp = "%%__TIMESTAMP__%%";
 }
 

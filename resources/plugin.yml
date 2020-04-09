@@ -6,4 +6,4 @@ depends: [Factions]
 commands:
   collector:
     description: Displays the available chunk collector commands.
-    aliases: [cc, chunkcollector]
+    aliases: [chunkcollector]

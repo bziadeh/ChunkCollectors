@@ -1,9 +1,8 @@
 package com.cloth.inventory;
 
 import com.cloth.ChunkCollectorPlugin;
-import com.cloth.collectors.ChunkCollector;
 import com.cloth.config.Config;
-import com.cloth.objects.FancyItem;
+import com.cloth.objects.CFancyItem;
 import com.massivecraft.factions.struct.Role;
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
@@ -85,15 +84,15 @@ public class Permissions implements Listener {
      * Creates the item's that will be used in the permissions GUI.
      */
     private static void createItems() {
-        breakItem = new FancyItem(Material.DIAMOND_PICKAXE)
+        breakItem = new CFancyItem(Material.DIAMOND_PICKAXE)
                 .setDisplayname("§eBreak Collector").setLore(Arrays.asList(required + Role.getByValue(Config.DESTROY_COLLECTOR_RANK).nicename,
                         "", cycle)).addItemFlag(ItemFlag.HIDE_ATTRIBUTES).build();
 
-        placeItem = new FancyItem(Material.LEATHER_HELMET)
+        placeItem = new CFancyItem(Material.LEATHER_HELMET)
                 .setDisplayname("§ePlace Collector").setLore(Arrays.asList(required + Role.getByValue(Config.PLACE_COLLECTOR_RANK).nicename,
                         "", cycle)).build();
 
-        useItem = new FancyItem(Material.DIAMOND)
+        useItem = new CFancyItem(Material.DIAMOND)
                 .setDisplayname("§eUse Collector").setLore(Arrays.asList(required + Role.getByValue(Config.SELL_COLLECTOR_RANK).nicename,
                         "", cycle)).build();
     }

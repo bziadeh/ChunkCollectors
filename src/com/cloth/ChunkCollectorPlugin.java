@@ -1,14 +1,11 @@
 package com.cloth;
 
-import com.cloth.collectors.ChunkCollector;
 import com.cloth.collectors.CollectorHandler;
 import com.cloth.commands.CollectorCommand;
 import com.cloth.config.Config;
-import com.cloth.config.SQL;
 import com.cloth.inventory.InventoryCreator;
-import com.cloth.inventory.InventoryHandler;
+import com.cloth.inventory.CollectorInventoryHandler;
 import com.cloth.inventory.Permissions;
-import com.cloth.packets.PacketHandler;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -16,7 +13,9 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.io.File;
 import java.util.concurrent.CountDownLatch;
+
 
 /**
  * Created by Brennan on 1/4/2020.
@@ -33,11 +32,18 @@ public class ChunkCollectorPlugin extends JavaPlugin {
 
     public static Economy economy = null;
 
+    public static boolean isWildStackerInstalled;
+
     public void onEnable() {
+
+        // Setup Vault economy...
         if(!setupEconomy()) {
             getLogger().severe("Cannot find Vault economy... disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
         }
+
+        // Check if WildStacker is installed on the server.
+        isWildStackerInstalled = getServer().getPluginManager().getPlugin("WildStacker") != null;
 
         instance = this;
 
@@ -50,33 +56,40 @@ public class ChunkCollectorPlugin extends JavaPlugin {
         new BukkitRunnable() {
             @Override
             public void run() {
-                // Asynchronously create the table in our SQL database...
-                SQL.createTableIfNotExists();
                 // Creates our collector handler.
                 collectorHandler = new CollectorHandler();
                 // This inventory creator makes a default (and reusable) inventory for new collectors.
                 inventoryCreator = new InventoryCreator(latch);
                 // Handles the collector inventory (selling).
-                new InventoryHandler();
+                new CollectorInventoryHandler();
                 // Handles the chunk collector command.
                 new CollectorCommand(instance);
-                // Handles all packet related code.
-                new PacketHandler(instance);
                 // Setup our in-game permissions settings GUI.
                 new Permissions();
-                // Finally, load collectors from database.
-                SQL.loadCollectors(latch);
             }
         }.runTaskLater(this, 30);
+
+        new Thread(() -> {
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            File file = new File("collectors.json");
+            if(file.exists()) {
+                collectorHandler.loadAll();
+            }
+        }).start();
     }
 
     /**
      * Saves all collectors to the database when the server stops.
      */
     public void onDisable() {
-        for(ChunkCollector chunkCollector : collectorHandler.getCollectorList()) {
-            SQL.saveCollector(chunkCollector);
-        }
+
+        // save all collectors to database.
+        collectorHandler.saveAll();
+
         Permissions.save();
     }
 

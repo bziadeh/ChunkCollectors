@@ -1,3 +1,7 @@
 Manifest-Version: 1.0
 Main-Class: com.cloth.ChunkCollectorPlugin
 
+%%__USERNAME__%%
+%%__VERSION__%%
+%%__RESOURCE__%%
+%%__TIMESTAMP__%%

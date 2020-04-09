@@ -34,6 +34,7 @@ public class Config {
     public static String COLLECTOR_GIVE;
     public static String COLLECTOR_RECEIVE;
     public static String COLLECTOR_DENY;
+    public static String COLLECTOR_EXTRACT;
     public static String INCORRECT_SYNTAX;
     public static String RELOAD_CONFIG;
     public static Set<String> COLLECTOR_TYPES;
@@ -49,6 +50,7 @@ public class Config {
     public static int PLACE_COLLECTOR_RANK;
     public static int DESTROY_COLLECTOR_RANK;
     public static int SELL_COLLECTOR_RANK;
+    public static boolean TNT_BANK_ENABLED;
 
     /**
      * Sets up and loads the default config settings.
@@ -70,6 +72,8 @@ public class Config {
      */
     public void loadConfig(boolean reload) {
         new Thread(() -> {
+            FileConfiguration config = plugin.getConfig();
+
             COLLECTOR_TITLE = getString("title");
             COLLECTOR_TYPE = getString("collector.type");
             COLLECTOR_PLACE = getString("collector-place");
@@ -82,17 +86,18 @@ public class Config {
             COLLECTOR_GIVE = getString("collector-give");
             COLLECTOR_RECEIVE = getString("collector-receive");
             COLLECTOR_DENY = getString("collector-deny");
+            COLLECTOR_EXTRACT = getString("collector-extract");
             INCORRECT_SYNTAX = getString("incorrect-syntax");
             RELOAD_CONFIG = getString("reload-config");
             PLAYER_NOT_FOUND = getString("player-not-found");
             NO_PERMISSION = getString("no-permission");
             MUST_HAVE_FACTION = getString("must-have-faction");
             CHUNK_OCCUPIED = getString("chunk-occupied");
+            TNT_BANK_ENABLED = config.getBoolean("tnt-bank");
+
 
             // We only allow messages to be reloaded, nothing else. So we put this stuff in here.
             if(!reload) {
-                FileConfiguration config = plugin.getConfig();
-
                 INVENTORY_SIZE = config.getInt("size");
 
                 COLLECTOR_TYPES = config.getConfigurationSection("collectors").getKeys(false);

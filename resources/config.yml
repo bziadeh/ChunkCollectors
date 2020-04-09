@@ -18,6 +18,9 @@ mode: INSTANT
 # Enable or disable collector holograms.
 holograms: true
 
+# Toggle the TNT bank feature. (converts gunpowder drops from creepers to TNT)
+tnt-bank: false
+
 #################################################################
 #                   Add & Customize Collectors                  #
 #                                                               #
@@ -57,42 +60,49 @@ collectors:
       name: '&fBlaze Rod'
       lore:
       - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
       pricePer: 100
     BONE:
       slot: 11
       name: '&fBone'
       lore:
       - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
       pricePer: 100
     SULPHUR:
       slot: 12
       name: '&fGunpowder'
       lore:
       - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
       pricePer: 175
     ARROW:
       slot: 13
       name: '&fArrow'
       lore:
       - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
       pricePer: 175
     SPIDER_EYE:
       slot: 14
       name: '&fSpider Eye'
       lore:
       - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
       pricePer: 175
     ROTTEN_FLESH:
       slot: 15
       name: '&fRotten Flesh'
       lore:
       - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
       pricePer: 125
     STRING:
       slot: 16
       name: '&fString'
       lore:
       - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
       pricePer: 125
 
 #################################################################
@@ -121,6 +131,7 @@ collector-invalid: '&cThe collector you specified cannot be found.'
 collector-give: '&aYou gave %name%: %type% &fx %amount%&a'
 collector-receive: '&aYou received: %type% &fx %amount%&a'
 collector-deny: '&cYou must be atleast %rank% &cto do this.'
+collector-extract: '&aYou extracted: &f%amount%x %name%'
 
 #################################################################
 #                        Placeable Item                         #
@@ -136,5 +147,4 @@ collector:
   lore:
     - ''
     - '&rPlace this down in your &eclaimed land &fto'
-    - '&rstart collecting &emob &f& &efarm &fdrops.'
-    - '&rYou can use the sell wands to quickly sell your savings.'
+    - '&rstart collecting &ecustom&f drops.'
