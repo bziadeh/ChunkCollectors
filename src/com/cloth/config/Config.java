@@ -51,6 +51,8 @@ public class Config {
     public static int DESTROY_COLLECTOR_RANK;
     public static int SELL_COLLECTOR_RANK;
     public static boolean TNT_BANK_ENABLED;
+    public static boolean DISABLE_NATURAL_FARMS;
+    public static int COLLECTOR_BACKUP_INTERVAL;
 
     /**
      * Sets up and loads the default config settings.
@@ -94,7 +96,11 @@ public class Config {
             MUST_HAVE_FACTION = getString("must-have-faction");
             CHUNK_OCCUPIED = getString("chunk-occupied");
             TNT_BANK_ENABLED = config.getBoolean("tnt-bank");
+            DISABLE_NATURAL_FARMS = config.getBoolean("disable-natural-farms");
+            COLLECTOR_BACKUP_INTERVAL = config.getInt("collector-backup-interval");
 
+            // Ensure the interval is AT LEAST once per minute. No quicker than that.
+            if(COLLECTOR_BACKUP_INTERVAL < 1) COLLECTOR_BACKUP_INTERVAL = 1;
 
             // We only allow messages to be reloaded, nothing else. So we put this stuff in here.
             if(!reload) {

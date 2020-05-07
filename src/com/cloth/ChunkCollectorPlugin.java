@@ -25,14 +25,13 @@ public class ChunkCollectorPlugin extends JavaPlugin {
     private static ChunkCollectorPlugin instance;
 
     private CollectorHandler collectorHandler;
-
     private InventoryCreator inventoryCreator;
 
     private Config config;
-
     public static Economy economy = null;
 
     public static boolean isWildStackerInstalled;
+    public static boolean isWildToolsInstalled;
 
     public void onEnable() {
 
@@ -42,8 +41,9 @@ public class ChunkCollectorPlugin extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
         }
 
-        // Check if WildStacker is installed on the server.
+        // Check if WildStacker & WildTools is installed on the server.
         isWildStackerInstalled = getServer().getPluginManager().getPlugin("WildStacker") != null;
+        isWildToolsInstalled = getServer().getPluginManager().getPlugin("WildTools") != null;
 
         instance = this;
 
@@ -75,20 +75,27 @@ public class ChunkCollectorPlugin extends JavaPlugin {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            File file = new File("collectors.json");
+            File file = new File(getDataFolder() + "/collectors.json");
             if(file.exists()) {
-                collectorHandler.loadAll();
+                collectorHandler.loadAll("collectors.json");
             }
+
+            // Start our collector save thread. Saves to JSON on an interval.
+            new CollectorBackups().start();
         }).start();
     }
 
-    /**
-     * Saves all collectors to the database when the server stops.
-     */
     public void onDisable() {
+        Thread saveThread = new Thread(() -> getCollectorHandler().saveAll("collectors.json"));
 
-        // save all collectors to database.
-        collectorHandler.saveAll();
+        saveThread.start();
+
+        // Force the main thread to wait for our collectors to finish saving.
+        try {
+            saveThread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
         Permissions.save();
     }

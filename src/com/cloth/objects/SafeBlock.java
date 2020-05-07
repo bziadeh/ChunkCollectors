@@ -25,50 +25,6 @@ public class SafeBlock {
         this.location = LocationUtility.convertLocationToString(location);
     }
 
-    @EventHandler
-    public void onBlockFall(BlockFromToEvent event) {
-        if(event.getBlock().getLocation().equals(location)) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    public void onBlockPhysics(BlockPhysicsEvent event) {
-        if(event.getBlock().getLocation().equals(location)) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    public void onPistonExtend(BlockPistonExtendEvent event) {
-        if(containsChunkCollector(event.getBlocks()))
-            event.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onPistonRetract(BlockPistonRetractEvent event) {
-        if(containsChunkCollector(event.getBlocks()))
-            event.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onBlockPickup(InventoryPickupItemEvent event) {
-        if(event.getInventory().getType() == InventoryType.HOPPER) {
-            Hopper hopper = (Hopper) event.getInventory().getHolder();
-
-            if(hopper.getLocation().equals(location)) {
-                event.setCancelled(true);
-            }
-        }
-    }
-
-    private boolean containsChunkCollector(List<Block> blockList) {
-        for(Block b : blockList)
-            if(b.getLocation().equals(location))
-                return true;
-        return false;
-    }
-
     public Location getLocation() {
         return LocationUtility.convertStringToLocation(location);
     }

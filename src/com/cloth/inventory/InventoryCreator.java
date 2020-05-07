@@ -147,7 +147,7 @@ public class InventoryCreator {
                 ItemStack itemToCollect = new ItemStack(material);
                 ItemMeta meta = itemToCollect.getItemMeta();
 
-                meta.setDisplayName(name + " §8(§70§8)");
+                meta.setDisplayName(name);
                 meta.setLore(getLore(path + ".lore"));
 
                 itemToCollect.setItemMeta(meta);

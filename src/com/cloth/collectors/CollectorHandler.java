@@ -7,10 +7,13 @@ import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.massivecraft.factions.*;
+import com.massivecraft.factions.event.LandUnclaimAllEvent;
 import com.massivecraft.factions.struct.Role;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.Inventory;
@@ -18,16 +21,20 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.*;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * Created by Brennan on 1/4/2020.
  */
 
 public class CollectorHandler implements Listener {
+
+    private static final SimpleDateFormat backupFormat;
+
+    static {
+        backupFormat = new SimpleDateFormat("hh mm ss");
+    }
 
     private List<ChunkCollector> collectorList;
 
@@ -78,11 +85,27 @@ public class CollectorHandler implements Listener {
     }
 
     /**
+     * Executed when a player unclaims all of their land.
+     *
+     * @param event the LandUnclaimAllEvent.
+     */
+    @EventHandler
+    public void onUnclaimAll(LandUnclaimAllEvent event) {
+        for(int i = collectorList.size() - 1; i >= 0; i--) {
+            final ChunkCollector collector = collectorList.get(i);
+            if(collector.getFaction().getId()
+                    .equalsIgnoreCase(event.getFaction().getId())) {
+                collector.destroy(collector.getLocation(), true);
+            }
+        }
+    }
+
+    /**
      * Executed when someone places a chunk collector.
      *
      * @param event the BlockPlaceEvent.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCollectorPlace(BlockPlaceEvent event) {
 
         final Player player = event.getPlayer();
@@ -184,8 +207,37 @@ public class CollectorHandler implements Listener {
         return null;
     }
 
-    public void loadAll() {
-        try (Reader reader = new FileReader("collectors.json")) {
+    public ChunkCollector getCollectorAtLocation(Chunk chunk) {
+        return collectorList.stream().filter(collector -> collector.getLocation().getChunk().equals(chunk))
+                .findFirst().orElse(null);
+    }
+
+    /**
+     * Creates a backup JSON of all saved collectors.
+     */
+    public void backup() {
+        final ChunkCollectorPlugin plugin = ChunkCollectorPlugin.getInstance();
+
+        File file = new File(plugin.getDataFolder() + "/backups");
+
+        if(!file.exists()) {
+            file.mkdirs();
+        }
+
+        final String time = backupFormat.format(new Date());
+        final String fileName = String.format("%s.json", time);
+
+        saveAll("backups/" + fileName);
+    }
+
+    /**
+     * Loads all collectors in from JSON.
+     *
+     * @param path the path to the file.
+     */
+    public void loadAll(String path) {
+        final ChunkCollectorPlugin plugin = ChunkCollectorPlugin.getInstance();
+        try (Reader reader = new FileReader(plugin.getDataFolder() + "/" + path)) {
             Gson gson = new Gson();
             Type listType = new TypeToken<List<ChunkCollector>>(){}.getType();
             collectorList = gson.fromJson(reader, listType);
@@ -193,16 +245,22 @@ public class CollectorHandler implements Listener {
             e.printStackTrace();
         }
         collectorList.forEach(collector -> {
-            ChunkCollectorPlugin.getInstance().registerListener(collector);
-            collector.update();
+            plugin.registerListener(collector);
+            collector.update(true);
         });
     }
 
-    public void saveAll() {
+    /**
+     * Saves all collectors to JSON.
+     *
+     * @param path the path to the file.
+     */
+    public void saveAll(String path) {
+        final ChunkCollectorPlugin plugin = ChunkCollectorPlugin.getInstance();
         collectorList.forEach(collector -> {
             collector.setInventoryBase64(InventoryUtil.toBase64(collector.getInventory().get()));
         });
-        try (Writer writer = new FileWriter("collectors.json")) {
+        try (Writer writer = new FileWriter(plugin.getDataFolder() + "/" + path)) {
             Gson gson = new Gson();
             gson.toJson(collectorList, writer);
             writer.close();

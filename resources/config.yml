@@ -10,7 +10,7 @@
 title: 'ChunkCollector'
 
 # The amount of inventory slots. (minimum: 27)
-size: 27
+size: 45
 
 # The mode of the collector. Either: FALL_DEATH, INSTANT
 mode: INSTANT
@@ -18,8 +18,14 @@ mode: INSTANT
 # Enable or disable collector holograms.
 holograms: true
 
-# Toggle the TNT bank feature. (converts gunpowder drops from creepers to TNT)
+# Toggle the TNT bank feature. (SavageFactions ONLY)
 tnt-bank: false
+
+# When set to true, normal cactus farms will not grow. Forces player to use collector.
+disable-natural-farms: true
+
+# How often are collector backup files created? (default: every 5 minutes)
+collector-backup-interval: 5
 
 #################################################################
 #                   Add & Customize Collectors                  #
@@ -39,71 +45,155 @@ collectors:
     background: NONE
     SUGAR_CANE:
       slot: 11
-      name: '&fSugarcane'
+      name: '&fSugarcane &8(&7%amount%&8)'
       lore: NONE
       pricePer: 175
     WHEAT:
       slot: 13
-      name: '&fWheat'
+      name: '&fWheat &8(&7%amount%&8)'
       lore: NONE
       pricePer: 175
     CACTUS:
       slot: 15
-      name: '&fCactus'
+      name: '&fCactus &8(&7%amount%&8)'
       lore: NONE
       pricePer: 175
   mob:
     item-name: '&6Mob Collector'
     background: BLACK
-    BLAZE_ROD:
+    RAW_CHICKEN:
       slot: 10
-      name: '&fBlaze Rod'
+      name: '&fChicken &8(&7%amount%&8)'
       lore:
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
-      pricePer: 100
-    BONE:
+      pricePer: 0.9375
+    FEATHER:
       slot: 11
-      name: '&fBone'
+      name: '&fFeather &8(&7%amount%&8)'
       lore:
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
-      pricePer: 100
-    SULPHUR:
+      pricePer: 1.875
+    PORK:
       slot: 12
-      name: '&fGunpowder'
+      name: '&fRaw Pork &8(&7%amount%&8)'
       lore:
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
-      pricePer: 175
-    ARROW:
+      pricePer: 0.9375
+    RAW_BEEF:
       slot: 13
-      name: '&fArrow'
+      name: '&fRaw Beef &8(&7%amount%&8)'
       lore:
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
-      pricePer: 175
-    SPIDER_EYE:
+      pricePer: 1.25
+    LEATHER:
       slot: 14
-      name: '&fSpider Eye'
+      name: '&fLeather &8(&7%amount%&8)'
       lore:
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
-      pricePer: 175
-    ROTTEN_FLESH:
+      pricePer: 4.375
+    MUTTON:
       slot: 15
-      name: '&fRotten Flesh'
+      name: '&fRaw Mutton &8(&7%amount%&8)'
       lore:
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
-      pricePer: 125
-    STRING:
+      pricePer: 0.9375
+    WOOL:
       slot: 16
-      name: '&fString'
+      name: '&fWool &8(&7%amount%&8)'
       lore:
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
-      pricePer: 125
+      pricePer: 1.25
+    ROTTEN_FLESH:
+      slot: 19
+      name: '&fRotten Flesh &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 2.1875
+    ARROW:
+      slot: 20
+      name: '&fArrow &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 2.1875
+    BONE:
+      slot: 21
+      name: '&fBone &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 2.1875
+    SPIDER_EYE:
+      slot: 22
+      name: '&fSpider Eye &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 2.5
+    STRING:
+      slot: 23
+      name: '&fString &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 2.5
+    TNT:
+      slot: 24
+      name: '&fTNT &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 6.875
+    GOLD_NUGGET:
+      slot: 25
+      name: '&fGold Nugget &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 8.3
+    BLAZE_ROD:
+      slot: 29
+      name: '&fBlaze Rod &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 17.5
+    SLIME_BALL:
+      slot: 30
+      name: '&fSlime Ball &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 12.5
+    ENDER_PEARL:
+      slot: 31
+      name: '&fEnder Pearl &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 15
+    IRON_INGOT:
+      slot: 32
+      name: '&fIron Ingot &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 35
+    EMERALD:
+      slot: 33
+      name: '&fEmerald &8(&7%amount%&8)'
+      lore:
+      - '&aLeft-click to sell.'
+      - '&6Right-click to extract.'
+      pricePer: 150
 
 #################################################################
 #                           Messages                            #
@@ -126,12 +216,12 @@ collector-place: '&aYou placed: %type%'
 collector-place-failure: '&cYou cannot place a chunk collector here.'
 collector-break: '&cYou removed: %type%'
 collector-break-failure: '&aYou are not allowed to break this chunk collector.'
-collector-sell: '&aSuccessfully sold &f%amount%x %name% &afor &f$%price%.'
+collector-sell: '&aSuccessfully sold %name% &afor &f$%price%.'
 collector-invalid: '&cThe collector you specified cannot be found.'
 collector-give: '&aYou gave %name%: %type% &fx %amount%&a'
 collector-receive: '&aYou received: %type% &fx %amount%&a'
 collector-deny: '&cYou must be atleast %rank% &cto do this.'
-collector-extract: '&aYou extracted: &f%amount%x %name%'
+collector-extract: '&aYou extracted: %name%'
 
 #################################################################
 #                        Placeable Item                         #

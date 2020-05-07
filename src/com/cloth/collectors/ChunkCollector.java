@@ -6,14 +6,16 @@ import com.cloth.config.Config;
 import com.cloth.objects.CollectorInventory;
 import com.cloth.objects.ItemData;
 import com.cloth.objects.SafeBlock;
+import com.cloth.util.LocationUtility;
 import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.gmail.filoghost.holographicdisplays.api.HologramsAPI;
-import com.google.gson.Gson;
 import com.massivecraft.factions.FPlayer;
 import com.massivecraft.factions.FPlayers;
 import com.massivecraft.factions.Faction;
 import com.massivecraft.factions.Factions;
 import com.massivecraft.factions.event.FactionDisbandEvent;
+import com.massivecraft.factions.event.LandUnclaimAllEvent;
+import com.massivecraft.factions.event.LandUnclaimEvent;
 import com.massivecraft.factions.struct.Role;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -36,14 +38,17 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+
+import java.util.*;
 
 /**
  * Created by Brennan on 1/4/2020.
  */
-public class ChunkCollector extends SafeBlock implements Listener {
+public class ChunkCollector implements Listener {
+
+    private transient Location location;
+
+    private String locationString;
 
     private String factionId;
 
@@ -59,12 +64,16 @@ public class ChunkCollector extends SafeBlock implements Listener {
 
     private static Random random = new Random();
 
-    public ChunkCollector(String factionId, Location location, String type) {
-        super(location);
+    private long lastHologramUpdate;
 
+    public ChunkCollector(String factionId, Location location, String type) {
         this.factionId = factionId;
 
+        this.locationString = LocationUtility.convertLocationToString(location);
+
         this.type = type;
+
+        this.lastHologramUpdate = -1;
 
         ChunkCollectorPlugin plugin = ChunkCollectorPlugin.getInstance();
 
@@ -74,6 +83,8 @@ public class ChunkCollector extends SafeBlock implements Listener {
 
         // Registers this class to ensure all event handlers execute.
         plugin.registerListener(this);
+
+        updateItems();
     }
 
     private static ItemStack collector;
@@ -147,7 +158,7 @@ public class ChunkCollector extends SafeBlock implements Listener {
 
         getItemCollection().put(material, 0);
 
-        update();
+        update(true);
 
         // Send success message:
         player.sendMessage(Config.COLLECTOR_SELL.replaceAll("&", "§")
@@ -208,7 +219,7 @@ public class ChunkCollector extends SafeBlock implements Listener {
                     if(getInventory().isCollecting(type)) {
                         event.getBlock().setType(Material.AIR);
                         getItemCollection().put(type, getItemCollection().get(type) + drop.getAmount());
-                        update();
+                        update(false);
                     }
                 }
             }
@@ -249,13 +260,22 @@ public class ChunkCollector extends SafeBlock implements Listener {
             type = Material.SUGAR_CANE;
         }
 
+        // Prevents cactus from growing.
+        if(type == Material.CACTUS && Config.DISABLE_NATURAL_FARMS) {
+            event.setCancelled(true);
+        }
+
         // Checking if the block is cactus or sugarcane.
         if(type == Material.SUGAR_CANE || type == Material.CACTUS) {
             if(chunk.equals(getLocation().getChunk())) {
                 if(getInventory().isCollecting(type)) {
-                    event.setCancelled(true);
+                    // Cancel the grow event and collect the item. Improves TPS.
+                    if(!event.isCancelled()) {
+                        event.setCancelled(true);
+                    }
+                    // Collect...
                     getItemCollection().put(type, getItemCollection().get(type) + 1);
-                    update();
+                    update(false);
                 }
             }
         }
@@ -286,11 +306,25 @@ public class ChunkCollector extends SafeBlock implements Listener {
      */
     @EventHandler (priority = EventPriority.HIGHEST)
     public void onEntityDeath(EntityDeathEvent event) {
+        // This event should only be used if FALL_DEATH mode is on. Otherwise, mobs are collected instantly
+        // upon spawning, and we use the SpawnerSpawnEvent instead.
+        if(!Config.COLLECTOR_MODE.equalsIgnoreCase("FALL_DEATH")) {
+            return;
+        }
+
+        if(event.getEntity() instanceof Player) {
+            return;
+        }
+
         if(event.getEntity().getLocation().getChunk().equals(getLocation().getChunk())){
 
-            // This event should only be used if FALL_DEATH mode is on. Otherwise, mobs are collected instantly
-            // upon spawning, and we use the SpawnerSpawnEvent instead.
-            if(!Config.COLLECTOR_MODE.equalsIgnoreCase("FALL_DEATH")) {
+            boolean wildStacker = ChunkCollectorPlugin.isWildStackerInstalled;
+
+            // TNT bank support for EntityDeathEvent.
+            if(event.getEntity().getType() == EntityType.CREEPER && Config.TNT_BANK_ENABLED) {
+                int tntAmount = wildStacker ? 3 * WildStackerAPI.getEntityAmount(event.getEntity()) : 3;
+                getFaction().addTnt(tntAmount);
+                event.getDrops().clear();
                 return;
             }
 
@@ -299,12 +333,12 @@ public class ChunkCollector extends SafeBlock implements Listener {
                 if (getInventory().isCollecting((type = drop.getType()))) {
                     int amount = drop.getAmount();
 
-                    if(ChunkCollectorPlugin.isWildStackerInstalled) {
+                    if(wildStacker) {
                         amount *= WildStackerAPI.getEntityAmount(event.getEntity());
                     }
 
                     getItemCollection().put(type, getItemCollection().get(type) + amount);
-                    update();
+                    update(false);
                 }
             }
 
@@ -314,14 +348,15 @@ public class ChunkCollector extends SafeBlock implements Listener {
 
     @EventHandler
     public void onEntitySpawn(CreatureSpawnEvent event) {
+        if(!Config.COLLECTOR_MODE.equalsIgnoreCase("INSTANT")) {
+            return;
+        }
+
         if(event.getSpawnReason() != CreatureSpawnEvent.SpawnReason.SPAWNER) {
             return;
         }
 
         if(event.getLocation().getChunk().equals(getLocation().getChunk())){
-            if(!Config.COLLECTOR_MODE.equalsIgnoreCase("INSTANT")) {
-                return;
-            }
 
             event.setCancelled(true);
 
@@ -332,7 +367,7 @@ public class ChunkCollector extends SafeBlock implements Listener {
             }
 
             processDrops(event.getEntityType(), amount);
-            update();
+            update(false);
         }
     }
 
@@ -349,6 +384,18 @@ public class ChunkCollector extends SafeBlock implements Listener {
     }
 
     /**
+     * Destroys this collector if the land which it is placed on is unclaimed.
+     *
+     * @param event the LandUnclaimEvent.
+     */
+    @EventHandler
+    public void onUnclaim(LandUnclaimEvent event) {
+        if(getLocation().getChunk().equals(event.getLocation().getChunk())) {
+            destroy(getLocation(), true);
+        }
+    }
+
+    /**
      * Checks if the block is this chunk collector.
      *
      * @param block the block being checked.
@@ -361,7 +408,7 @@ public class ChunkCollector extends SafeBlock implements Listener {
     /**
      * Executes when the chunk collector is destroyed (by a player or an explosion)
      */
-    private void destroy(Location location, boolean drop) {
+    public void destroy(Location location, boolean drop) {
         if(drop) {
             location.getBlock().setType(Material.AIR);
             location.getWorld().dropItem(location, ChunkCollector.getCollectorItem(type));
@@ -372,29 +419,37 @@ public class ChunkCollector extends SafeBlock implements Listener {
     /**
      * Updates the item's in the GUI.
      */
-    public void update() {
+    public void update(boolean bypassDelay) {
+        updateItems();
+
+        if(getHologram() != null) {
+            // Has at least one second passed since the last hologram update? (prevents flickering)
+            if(bypassDelay || lastHologramUpdate == -1 || ((System.currentTimeMillis() - lastHologramUpdate) / 1000) > 1) {
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if(getHologram().size() > 1) {
+                            getHologram().removeLine(1);
+                            getHologram().insertTextLine(1, "§a$" + String.format("%,.2f", getTotalWorth()));
+                            lastHologramUpdate = System.currentTimeMillis();
+                        }
+                    }
+                }.runTask(ChunkCollectorPlugin.getInstance());
+            }
+        }
+    }
+
+    private void updateItems() {
         for(Material material : getInventory().getCollectedMaterials()) {
 
             ItemStack item = getInventory().get().getItem(getInventory().getSlot(material)); // the current item...
             ItemMeta meta = item.getItemMeta();
             ItemData itemData = getInventory().getItemData(material);
 
-            meta.setDisplayName(itemData.getName() + " §8(§7" + getItemCollection().get(material) + "§8)");
+            meta.setDisplayName(itemData.getName().replaceAll("%amount%", String.valueOf(getItemCollection().get(material))));
             item.setItemMeta(meta);
 
             getInventory().get().getViewers().forEach(viewer -> ((Player) viewer).updateInventory());
-        }
-
-        if(getHologram() != null) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if(getHologram().size() > 1) {
-                        getHologram().removeLine(1);
-                        getHologram().insertTextLine(1, "§a$" + String.format("%,.2f", getTotalWorth()));
-                    }
-                }
-            }.runTask(ChunkCollectorPlugin.getInstance());
         }
     }
 
@@ -444,9 +499,9 @@ public class ChunkCollector extends SafeBlock implements Listener {
                 break;
             case CREEPER:
                 if(Config.TNT_BANK_ENABLED)
-                    add(3 * multiplier, Material.TNT);
+                    getFaction().addTnt(3 * multiplier);
                 else
-                    add(3 * multiplier, Material.SULPHUR);
+                    add(3 * multiplier, Material.TNT);
                 break;
             case ZOMBIE:
                 add(2 * multiplier, Material.ROTTEN_FLESH);
@@ -459,6 +514,7 @@ public class ChunkCollector extends SafeBlock implements Listener {
                 break;
             case PIG_ZOMBIE:
                 add(2 * multiplier, Material.GOLD_INGOT, Material.GOLD_NUGGET);
+                break;
             case SLIME:
                 add(2 * multiplier, Material.SLIME_BALL);
                 break;
@@ -473,6 +529,15 @@ public class ChunkCollector extends SafeBlock implements Listener {
                 break;
             case VILLAGER:
                 add(3 * multiplier, Material.EMERALD);
+                break;
+            case CHICKEN:
+                add(2 * multiplier, Material.FEATHER, Material.RAW_CHICKEN);
+                break;
+            case COW:
+                add(2 * multiplier, Material.RAW_BEEF, Material.LEATHER);
+                break;
+            case SHEEP:
+                add(2 * multiplier, Material.WOOL, Material.MUTTON);
                 break;
         }
     }
@@ -559,19 +624,19 @@ public class ChunkCollector extends SafeBlock implements Listener {
      * @param contents the formatted string.
      */
     public void fill(String contents) {
-       String[] sections = contents.split(">");
+        String[] sections = contents.split(">");
 
-       for(String section : sections) {
-           String[] data = section.split(",");
+        for(String section : sections) {
+            String[] data = section.split(",");
 
-           Material material = Material.getMaterial(data[0]);
+            Material material = Material.getMaterial(data[0]);
 
-           int amount = Integer.parseInt(data[1]);
+            int amount = Integer.parseInt(data[1]);
 
-           getItemCollection().put(material, amount);
-       }
+            getItemCollection().put(material, amount);
+        }
 
-       update();
+        update(true);
     }
 
     /**
@@ -608,7 +673,7 @@ public class ChunkCollector extends SafeBlock implements Listener {
                     .replaceAll("%amount%", String.valueOf(total)));
 
             // Update the inventory after extracting.
-            update();
+            update(true);
         }
     }
 
@@ -648,5 +713,12 @@ public class ChunkCollector extends SafeBlock implements Listener {
             setupHologramIfEnabled();
         }
         return hologram;
+    }
+
+    public Location getLocation() {
+        if(location == null) {
+            location = LocationUtility.convertStringToLocation(locationString);
+        }
+        return location;
     }
 }
