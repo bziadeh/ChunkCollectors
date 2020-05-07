@@ -172,7 +172,7 @@ public class ChunkCollector implements Listener {
      *
      * @param event the PlayerInteractEvent.
      */
-    @EventHandler (priority = EventPriority.HIGHEST)
+    @EventHandler (priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCollectorInteract(PlayerInteractEvent event) {
         if(isThisCollector(event.getClickedBlock()) && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             event.setCancelled(true);
@@ -182,13 +182,14 @@ public class ChunkCollector implements Listener {
             FPlayer fp = FPlayers.getInstance().getByPlayer(player);
 
             // Someone outside of the faction trying to sell the contents...
-            if(!fp.hasFaction() || !fp.getFaction().equals(getFaction())) {
+            if((!fp.hasFaction() || !fp.getFaction().equals(getFaction())) && !fp.isAdminBypassing()) {
+                player.sendMessage(Config.NO_PERMISSION);
                 return;
             }
 
             int rank;
 
-            if(fp.getRole().value < (rank = Config.SELL_COLLECTOR_RANK)) {
+            if(fp.getRole().value < (rank = Config.SELL_COLLECTOR_RANK) && !fp.isAdminBypassing()) {
                 player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
                 return;
             }
@@ -202,7 +203,7 @@ public class ChunkCollector implements Listener {
      *
      * @param event the BlockBreakEvent.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCollectorBreak(BlockBreakEvent event) {
 
         Block block;
@@ -228,26 +229,24 @@ public class ChunkCollector implements Listener {
 
         event.setCancelled(true);
 
-        FPlayer player;
+        FPlayer player = FPlayers.getInstance().getByPlayer(event.getPlayer());
 
-        if((player = FPlayers.getInstance().getByPlayer(event.getPlayer())).hasFaction()) {
-
-            if(!player.getFaction().equals(getFaction())) {
-                return;
-            }
-
-            int rank;
-
-            if(player.getRole().value < (rank = Config.DESTROY_COLLECTOR_RANK)) {
-                player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
-                return;
-            }
-
-            destroy(event.getBlock().getLocation(), true);
-
-            event.getPlayer().sendMessage(Config.COLLECTOR_BREAK.replaceAll("%type%",
-                    Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
+        if((!player.hasFaction() || !player.getFaction().equals(getFaction())) && !player.isAdminBypassing()) {
+            player.sendMessage(Config.COLLECTOR_BREAK_FAILURE);
+            return;
         }
+
+        int rank;
+
+        if(player.getRole().value < (rank = Config.DESTROY_COLLECTOR_RANK) && !player.isAdminBypassing()) {
+            player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
+            return;
+        }
+
+        destroy(event.getBlock().getLocation(), true);
+
+        event.getPlayer().sendMessage(Config.COLLECTOR_BREAK.replaceAll("%type%",
+                Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -368,18 +367,6 @@ public class ChunkCollector implements Listener {
 
             processDrops(event.getEntityType(), amount);
             update(false);
-        }
-    }
-
-    @EventHandler
-    public void onFactionDisband(FactionDisbandEvent event) {
-        List<ChunkCollector> collectors = ChunkCollectorPlugin.getInstance().getCollectorHandler().getCollectorList();
-
-        for(int i = collectors.size() - 1; i >= 0; i--) {
-            ChunkCollector collector;
-            if((collector = collectors.get(i)).getFaction().getId().equalsIgnoreCase(event.getFaction().getId())) {
-                collector.destroy(collector.getLocation(), true);
-            }
         }
     }
 
@@ -513,7 +500,7 @@ public class ChunkCollector implements Listener {
                 add(2 * multiplier, Material.STRING, Material.SPIDER_EYE);
                 break;
             case PIG_ZOMBIE:
-                add(2 * multiplier, Material.GOLD_INGOT, Material.GOLD_NUGGET);
+                add(2 * multiplier, Material.GOLD_NUGGET);
                 break;
             case SLIME:
                 add(2 * multiplier, Material.SLIME_BALL);

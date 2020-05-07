@@ -7,6 +7,7 @@ import com.gmail.filoghost.holographicdisplays.api.Hologram;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.massivecraft.factions.*;
+import com.massivecraft.factions.event.FactionDisbandEvent;
 import com.massivecraft.factions.event.LandUnclaimAllEvent;
 import com.massivecraft.factions.struct.Role;
 import org.bukkit.Chunk;
@@ -85,6 +86,30 @@ public class CollectorHandler implements Listener {
     }
 
     /**
+     * Executed when a player disbands their faction. (or the last player leaves)
+     *
+     * @param event the FactionDisbandEvent.
+     */
+    @EventHandler
+    public void onFactionDisband(FactionDisbandEvent event) {
+        List<ChunkCollector> collectors = ChunkCollectorPlugin.getInstance().getCollectorHandler().getCollectorList();
+
+        // Last player left...
+        if(event.getFaction() == null) {
+            removeNullCollectors();
+            return;
+        }
+
+        // Normal disband using command...
+        for(int i = collectors.size() - 1; i >= 0; i--) {
+            ChunkCollector collector;
+            if((collector = collectors.get(i)).getFaction().getId().equalsIgnoreCase(event.getFaction().getId())) {
+                collector.destroy(collector.getLocation(), true);
+            }
+        }
+    }
+
+    /**
      * Executed when a player unclaims all of their land.
      *
      * @param event the LandUnclaimAllEvent.
@@ -122,7 +147,7 @@ public class CollectorHandler implements Listener {
             FPlayer factionPlayer;
 
             // Is the player allowed to place a collector?
-            if(!(factionPlayer = FPlayers.getInstance().getByPlayer(player)).hasFaction()) {
+            if(!(factionPlayer = FPlayers.getInstance().getByPlayer(player)).hasFaction() && !factionPlayer.isAdminBypassing()) {
                 event.setCancelled(true);
                 player.sendMessage(Config.MUST_HAVE_FACTION);
                 return;
@@ -135,8 +160,15 @@ public class CollectorHandler implements Listener {
                 return;
             }
 
+            // Not allowed to place in SafeZone, WarZone, Wilderness
+            if(factionAt.isSystemFaction()) {
+                event.setCancelled(true);
+                player.sendMessage(Config.COLLECTOR_PLACE_FAILURE);
+                return;
+            }
+
             // Does the player own the land where the collector is being placed?
-            if (!factionAt.equals(factionPlayer.getFaction())) {
+            if (!factionAt.equals(factionPlayer.getFaction()) && !factionPlayer.isAdminBypassing()) {
                 event.setCancelled(true);
                 player.sendMessage(Config.COLLECTOR_PLACE_FAILURE);
                 return;
@@ -144,7 +176,7 @@ public class CollectorHandler implements Listener {
 
             int rank;
 
-            if(factionPlayer.getRole().value < (rank = Config.PLACE_COLLECTOR_RANK)) {
+            if(factionPlayer.getRole().value < (rank = Config.PLACE_COLLECTOR_RANK) && !factionPlayer.isAdminBypassing()) {
                 event.setCancelled(true);
                 player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
                 return;
@@ -178,7 +210,7 @@ public class CollectorHandler implements Listener {
             // Yay, it succeeded!
             player.sendMessage(Config.COLLECTOR_PLACE.replaceAll("%type%",
                     Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
-            addCollector(new ChunkCollector(factionPlayer.getFaction().getId(), event.getBlockPlaced().getLocation(), type));
+            addCollector(new ChunkCollector(factionAt.getId(), event.getBlockPlaced().getLocation(), type));
         }
     }
 
@@ -266,6 +298,18 @@ public class CollectorHandler implements Listener {
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Removes any collector with an empty faction from memory.
+     */
+    private void removeNullCollectors() {
+        for(int i = collectorList.size() - 1; i >= 0; i--) {
+            ChunkCollector collector = collectorList.get(i);
+            if(collector.getFaction().getFPlayers().isEmpty()) {
+                collector.destroy(collector.getLocation(), true);
+            }
         }
     }
 }
