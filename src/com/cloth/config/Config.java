@@ -114,7 +114,7 @@ public class Config {
                 // Stores all of the custom item names.
                 config.getConfigurationSection("collectors")
                         .getKeys(false).forEach(collector -> {
-                    COLLECTOR_ITEM_NAMES.put(collector, getString("collectors." + collector + ".item-name"));
+                    COLLECTOR_ITEM_NAMES.put(collector.toLowerCase(), getString("collectors." + collector + ".item-name"));
                 });
 
                 COLLECTOR_ITEM_LORE = (List<String>) config.getList("collector.lore");

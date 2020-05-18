@@ -75,7 +75,7 @@ public class CollectorCommand implements CommandExecutor {
 
         String type;
 
-        if(!isCollectorType(type = args[2])) {
+        if(!isCollectorType(type = args[2].toLowerCase())) {
             commandSender.sendMessage(Config.COLLECTOR_INVALID);
             return false;
         }
@@ -102,7 +102,7 @@ public class CollectorCommand implements CommandExecutor {
         }
 
         // Send the sent and receive messages.
-        String display = Config.COLLECTOR_ITEM_NAMES.get(args[2]).replaceAll("&", "§");
+        String display = Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§");
         sendCompleteMessage(commandSender, target, display, amount);
         return false;
     }

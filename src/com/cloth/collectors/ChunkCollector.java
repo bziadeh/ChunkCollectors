@@ -123,7 +123,7 @@ public class ChunkCollector implements Listener {
     public static ItemStack getCollectorItem(String type) {
         ItemMeta meta = collector.getItemMeta();
 
-        meta.setDisplayName(Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§"));
+        meta.setDisplayName(Config.COLLECTOR_ITEM_NAMES.get(type.toLowerCase()).replaceAll("&", "§"));
 
         collector.setItemMeta(meta);
 
@@ -305,9 +305,11 @@ public class ChunkCollector implements Listener {
      */
     @EventHandler (priority = EventPriority.HIGHEST)
     public void onEntityDeath(EntityDeathEvent event) {
+        final String mode = Config.COLLECTOR_MODE;
+
         // This event should only be used if FALL_DEATH mode is on. Otherwise, mobs are collected instantly
         // upon spawning, and we use the SpawnerSpawnEvent instead.
-        if(!Config.COLLECTOR_MODE.equalsIgnoreCase("FALL_DEATH")) {
+        if(!mode.equalsIgnoreCase("FALL_DEATH")) {
             return;
         }
 
