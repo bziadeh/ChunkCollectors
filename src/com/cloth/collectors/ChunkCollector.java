@@ -174,27 +174,28 @@ public class ChunkCollector implements Listener {
      */
     @EventHandler (priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCollectorInteract(PlayerInteractEvent event) {
-        if(isThisCollector(event.getClickedBlock()) && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            event.setCancelled(true);
+        if(isThisCollector(event.getClickedBlock())) {
+            final Action action = event.getAction();
+            final Player player = event.getPlayer();
+            final FPlayer fp = FPlayers.getInstance().getByPlayer(player);
 
-            Player player = event.getPlayer();
+            // Someone is trying to access the collector...
+            if(action == Action.RIGHT_CLICK_BLOCK) {
+                event.setCancelled(true);
 
-            FPlayer fp = FPlayers.getInstance().getByPlayer(player);
+                // Someone outside of the faction trying to sell the contents...
+                if(!isInFaction(fp) && !fp.isAdminBypassing()) {
+                    player.sendMessage(Config.NO_PERMISSION);
+                    return;
+                }
+                // Inside faction but still no permission...
+                if(!hasSellPermission(fp) && !fp.isAdminBypassing()) {
+                    player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(Config.SELL_COLLECTOR_RANK).nicename));
+                    return;
+                }
 
-            // Someone outside of the faction trying to sell the contents...
-            if((!fp.hasFaction() || !fp.getFaction().equals(getFaction())) && !fp.isAdminBypassing()) {
-                player.sendMessage(Config.NO_PERMISSION);
-                return;
+                event.getPlayer().openInventory(getInventory().get());
             }
-
-            int rank;
-
-            if(fp.getRole().value < (rank = Config.SELL_COLLECTOR_RANK) && !fp.isAdminBypassing()) {
-                player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
-                return;
-            }
-
-            event.getPlayer().openInventory(getInventory().get());
         }
     }
 
@@ -237,7 +238,6 @@ public class ChunkCollector implements Listener {
         }
 
         int rank;
-
         if(player.getRole().value < (rank = Config.DESTROY_COLLECTOR_RANK) && !player.isAdminBypassing()) {
             player.sendMessage(Config.COLLECTOR_DENY.replaceAll("%rank%", Role.getByValue(rank).nicename));
             return;
@@ -436,10 +436,21 @@ public class ChunkCollector implements Listener {
             ItemData itemData = getInventory().getItemData(material);
 
             meta.setDisplayName(itemData.getName().replaceAll("%amount%", String.valueOf(getItemCollection().get(material))));
+            meta.setLore(getUpdatedLore(material, itemData));
             item.setItemMeta(meta);
 
             getInventory().get().getViewers().forEach(viewer -> ((Player) viewer).updateInventory());
         }
+    }
+
+    private List<String> getUpdatedLore(Material material, ItemData itemData) {
+        final List<String> configLore = itemData.getLore();
+        final List<String> itemLore = new ArrayList<>();
+
+        final double totalValue = getInventory().getPrice(material) * getAmountOf(material);
+        configLore.forEach(line -> itemLore.add(line.replaceAll("%value%", String.format("%.2f", totalValue))));
+
+        return itemLore;
     }
 
     /**
@@ -683,6 +694,20 @@ public class ChunkCollector implements Listener {
                 }
             }.runTask(plugin);
         }
+    }
+
+    private boolean isInFaction(FPlayer fp) {
+        if(!fp.hasFaction() || !fp.getFaction().equals(getFaction())) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean hasSellPermission(FPlayer fp) {
+        if(fp.getRole().value < Config.SELL_COLLECTOR_RANK) {
+            return false;
+        }
+        return true;
     }
 
     public void setInventoryBase64(String inventoryBase64) {

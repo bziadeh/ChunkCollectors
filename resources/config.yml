@@ -65,6 +65,8 @@ collectors:
       slot: 10
       name: '&fChicken &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 0.9375
@@ -72,6 +74,8 @@ collectors:
       slot: 11
       name: '&fFeather &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 1.875
@@ -79,6 +83,8 @@ collectors:
       slot: 12
       name: '&fRaw Pork &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 0.9375
@@ -86,6 +92,8 @@ collectors:
       slot: 13
       name: '&fRaw Beef &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 1.25
@@ -93,6 +101,8 @@ collectors:
       slot: 14
       name: '&fLeather &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 4.375
@@ -100,6 +110,8 @@ collectors:
       slot: 15
       name: '&fRaw Mutton &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 0.9375
@@ -107,6 +119,8 @@ collectors:
       slot: 16
       name: '&fWool &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 1.25
@@ -114,6 +128,8 @@ collectors:
       slot: 19
       name: '&fRotten Flesh &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 2.1875
@@ -121,6 +137,8 @@ collectors:
       slot: 20
       name: '&fArrow &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 2.1875
@@ -128,6 +146,8 @@ collectors:
       slot: 21
       name: '&fBone &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 2.1875
@@ -135,6 +155,8 @@ collectors:
       slot: 22
       name: '&fSpider Eye &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 2.5
@@ -142,6 +164,8 @@ collectors:
       slot: 23
       name: '&fString &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 2.5
@@ -149,6 +173,8 @@ collectors:
       slot: 24
       name: '&fTNT &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 6.875
@@ -156,6 +182,8 @@ collectors:
       slot: 25
       name: '&fGold Nugget &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 8.3
@@ -163,6 +191,8 @@ collectors:
       slot: 29
       name: '&fBlaze Rod &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 17.5
@@ -170,6 +200,8 @@ collectors:
       slot: 30
       name: '&fSlime Ball &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 12.5
@@ -177,6 +209,8 @@ collectors:
       slot: 31
       name: '&fEnder Pearl &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 15
@@ -184,6 +218,8 @@ collectors:
       slot: 32
       name: '&fIron Ingot &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 35
@@ -191,6 +227,8 @@ collectors:
       slot: 33
       name: '&fEmerald &8(&7%amount%&8)'
       lore:
+      - '&7Value: &a$%value%'
+      - ''
       - '&aLeft-click to sell.'
       - '&6Right-click to extract.'
       pricePer: 150

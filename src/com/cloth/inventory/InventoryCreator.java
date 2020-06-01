@@ -139,16 +139,17 @@ public class InventoryCreator {
                 String path = "collectors." + collector + "." + drop;
                 int slot = config.getInt(path + ".slot");
                 String name = config.getString(path + ".name").replaceAll("&", "§");
-
                 Material material = Material.valueOf(drop);
-                collectorInventory.set(material, new ItemData(config.getDouble(path + ".pricePer"), slot, name));
+                List<String> lore = getLore(path + ".lore");
+
+                collectorInventory.set(material, new ItemData(config.getDouble(path + ".pricePer"), slot, name, lore));
 
                 // Creating our custom drop item.
                 ItemStack itemToCollect = new ItemStack(material);
                 ItemMeta meta = itemToCollect.getItemMeta();
 
                 meta.setDisplayName(name);
-                meta.setLore(getLore(path + ".lore"));
+                meta.setLore(lore);
 
                 itemToCollect.setItemMeta(meta);
                 inv.setItem(slot, itemToCollect);
