@@ -27,6 +27,9 @@ disable-natural-farms: true
 # How often are collector backup files created? (default: every 5 minutes)
 collector-backup-interval: 5
 
+# Enable or disable a runnable to cleanup any collectors removed by WorldEdit, Trench Pickaxe, etc.
+cleanup-runnable: true
+
 #################################################################
 #                   Add & Customize Collectors                  #
 #                                                               #

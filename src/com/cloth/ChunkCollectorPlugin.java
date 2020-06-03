@@ -86,7 +86,9 @@ public class ChunkCollectorPlugin extends JavaPlugin {
             new CollectorBackups().start();
 
             // Start our collector runnable thread. Updates broken collectors.
-            new CollectorRunnable(new CollectorUpdateThread()).runTaskTimer(this, 0, 10);
+            if(Config.CLEANUP_RUNNABLE) {
+                new CollectorRunnable(new CollectorUpdateThread()).runTaskTimer(this, 0, 10);
+            }
         }).start();
     }
 

@@ -53,6 +53,7 @@ public class Config {
     public static boolean TNT_BANK_ENABLED;
     public static boolean DISABLE_NATURAL_FARMS;
     public static int COLLECTOR_BACKUP_INTERVAL;
+    public static boolean CLEANUP_RUNNABLE;
 
     /**
      * Sets up and loads the default config settings.
@@ -98,6 +99,7 @@ public class Config {
             TNT_BANK_ENABLED = config.getBoolean("tnt-bank");
             DISABLE_NATURAL_FARMS = config.getBoolean("disable-natural-farms");
             COLLECTOR_BACKUP_INTERVAL = config.getInt("collector-backup-interval");
+            CLEANUP_RUNNABLE = config.getBoolean("cleanup-runnable");
 
             // Ensure the interval is AT LEAST once per minute. No quicker than that.
             if(COLLECTOR_BACKUP_INTERVAL < 1) COLLECTOR_BACKUP_INTERVAL = 1;
