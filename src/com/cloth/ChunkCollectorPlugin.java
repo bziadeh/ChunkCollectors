@@ -6,6 +6,8 @@ import com.cloth.config.Config;
 import com.cloth.inventory.InventoryCreator;
 import com.cloth.inventory.CollectorInventoryHandler;
 import com.cloth.inventory.Permissions;
+import com.cloth.update.CollectorRunnable;
+import com.cloth.update.CollectorUpdateThread;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -82,6 +84,9 @@ public class ChunkCollectorPlugin extends JavaPlugin {
 
             // Start our collector save thread. Saves to JSON on an interval.
             new CollectorBackups().start();
+
+            // Start our collector runnable thread. Updates broken collectors.
+            new CollectorRunnable(new CollectorUpdateThread()).runTaskTimer(this, 0, 10);
         }).start();
     }
 

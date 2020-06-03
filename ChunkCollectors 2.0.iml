@@ -17,5 +17,7 @@
     <orderEntry type="library" name="json-20140107" level="project" />
     <orderEntry type="library" name="commons-lang3-3.9" level="project" />
     <orderEntry type="library" name="HolographicDisplays" level="project" />
+    <orderEntry type="library" name="WildStackerAPI (2)" level="project" />
+    <orderEntry type="library" name="WildToolsAPI (1)" level="project" />
   </component>
 </module>

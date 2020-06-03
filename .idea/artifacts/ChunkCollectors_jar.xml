@@ -4,7 +4,9 @@
     <root id="archive" name="ChunkCollectors.jar">
       <element id="module-output" name="ChunkCollectors 2.0" />
       <element id="file-copy" path="$PROJECT_DIR$/resources/plugin.yml" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/libs/json-20140107.jar" path-in-jar="/" />
       <element id="file-copy" path="$PROJECT_DIR$/resources/config.yml" />
+      <element id="file-copy" path="$PROJECT_DIR$/resources/permissions.yml" />
     </root>
   </artifact>
 </component>

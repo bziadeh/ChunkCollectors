@@ -243,7 +243,7 @@ public class ChunkCollector implements Listener {
             return;
         }
 
-        destroy(event.getBlock().getLocation(), true);
+        destroy(true);
 
         event.getPlayer().sendMessage(Config.COLLECTOR_BREAK.replaceAll("%type%",
                 Config.COLLECTOR_ITEM_NAMES.get(type).replaceAll("&", "§")));
@@ -292,7 +292,7 @@ public class ChunkCollector implements Listener {
                 Block block = event.blockList().get(i);
                 if(isThisCollector(block)) {
                     event.blockList().remove(i);
-                    destroy(block.getLocation(), true);
+                    destroy(true);
                 }
             }
         }
@@ -380,7 +380,7 @@ public class ChunkCollector implements Listener {
     @EventHandler
     public void onUnclaim(LandUnclaimEvent event) {
         if(getLocation().getChunk().equals(event.getLocation().getChunk())) {
-            destroy(getLocation(), true);
+            destroy(true);
         }
     }
 
@@ -397,10 +397,10 @@ public class ChunkCollector implements Listener {
     /**
      * Executes when the chunk collector is destroyed (by a player or an explosion)
      */
-    public void destroy(Location location, boolean drop) {
+    public void destroy(boolean drop) {
         if(drop) {
-            location.getBlock().setType(Material.AIR);
-            location.getWorld().dropItem(location, ChunkCollector.getCollectorItem(type));
+            getLocation().getBlock().setType(Material.AIR);
+            getLocation().getWorld().dropItem(getLocation(), ChunkCollector.getCollectorItem(type));
         }
         ChunkCollectorPlugin.getInstance().getCollectorHandler().removeCollector(this);
     }

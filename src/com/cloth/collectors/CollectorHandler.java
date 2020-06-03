@@ -104,7 +104,7 @@ public class CollectorHandler implements Listener {
         for(int i = collectors.size() - 1; i >= 0; i--) {
             ChunkCollector collector;
             if((collector = collectors.get(i)).getFaction().getId().equalsIgnoreCase(event.getFaction().getId())) {
-                collector.destroy(collector.getLocation(), true);
+                collector.destroy(true);
             }
         }
     }
@@ -120,7 +120,7 @@ public class CollectorHandler implements Listener {
             final ChunkCollector collector = collectorList.get(i);
             if(collector.getFaction().getId()
                     .equalsIgnoreCase(event.getFaction().getId())) {
-                collector.destroy(collector.getLocation(), true);
+                collector.destroy(true);
             }
         }
     }
@@ -308,7 +308,7 @@ public class CollectorHandler implements Listener {
         for(int i = collectorList.size() - 1; i >= 0; i--) {
             ChunkCollector collector = collectorList.get(i);
             if(collector.getFaction().getFPlayers().isEmpty()) {
-                collector.destroy(collector.getLocation(), true);
+                collector.destroy(true);
             }
         }
     }
